@@ -47,6 +47,13 @@ export const STATIONS = [
       const note = melody[(bar % 2) * 16 + step];
       if (note) s.marimba(out, t, note, 0.18);
       if (step === 0 || step === 8) s.pad(out, t, chord.map((n) => n + 12), dur * 7, 0.025, 1000);
+      // Hand percussion: congas answer the kick, toms fill the end of every fourth bar.
+      if (s.tom) {
+        if (step === 6 || step === 14) s.tom(out, t, 64, 0.16);
+        else if (step === 7 || step === 15) s.tom(out, t, 59, 0.13);
+        if (bar % 4 === 3 && step >= 12) s.tom(out, t, 52 - (step - 12) * 2, 0.2);
+      }
+      if (s.shaker && step % 2 === 0) s.shaker(out, t, step % 4 === 2 ? 0.05 : 0.03);
     },
   },
   {

@@ -1,5 +1,8 @@
-// Instrument voices built from Web Audio oscillators and noise: kick, snare, clap, hats, bass,
-// pads, plucks, electric piano and lead. The radio stations and the jingles play these.
+// Procedural instrument voices, all Web Audio oscillators and filtered noise, no samples.
+// Drums: kick, snare, clap, closed/open hats, a pitched tom/conga (a sine with a pitch drop and
+// a short skin slap) and a shaker (bandpassed noise with a swell then a snap).
+// Tones: filtered bass, warm detuned pads whose lowpass opens slowly and settles back,
+// plucks, marimba, electric piano and a vibrato lead. The radio stations and jingles use them.
 
 export const midiToFreq = (m) => 440 * Math.pow(2, (m - 69) / 12);
 
@@ -63,6 +66,28 @@ export function createSynth(ctx, noiseBuffer) {
       const g = ctx.createGain(); env(g, t, 0.001, level, open ? 0.25 : 0.045);
       n.connect(hp).connect(g).connect(out);
     },
+    /** Pitched hand drum: low notes sound like a floor tom, high ones (~MIDI 60+) like a conga. */
+    tom(out, t, note = 50, level = 0.4) {
+      const f = midiToFreq(note);
+      const body = osc('sine', f * 1.5, t, 0.35);
+      body.frequency.exponentialRampToValueAtTime(f, t + 0.04);
+      const bg = ctx.createGain(); env(bg, t, 0.002, level, note >= 60 ? 0.18 : 0.3);
+      body.connect(bg).connect(out);
+      const slap = noise(t, 0.03);
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 6; bp.Q.value = 2;
+      const sg = ctx.createGain(); env(sg, t, 0.001, level * 0.35, 0.025);
+      slap.connect(bp).connect(sg).connect(out);
+    },
+    /** Shaker: a soft noise swell that snaps off, like beads hitting the shell. */
+    shaker(out, t, level = 0.06, length = 0.07) {
+      const n = noise(t, length + 0.02);
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 6500; bp.Q.value = 0.9;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(level, t + length * 0.6);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + length);
+      n.connect(bp).connect(g).connect(out);
+    },
     bass(out, t, note, duration, level = 0.35, type = 'sawtooth', cutoff = 520) {
       const o = osc(type, midiToFreq(note), t, duration + 0.1);
       const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(cutoff * 2.2, t); lp.frequency.exponentialRampToValueAtTime(cutoff, t + 0.08); lp.Q.value = 4;
@@ -70,7 +95,11 @@ export function createSynth(ctx, noiseBuffer) {
       o.connect(lp).connect(g).connect(out);
     },
     pad(out, t, notes, duration, level = 0.08, cutoff = 1400) {
-      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cutoff;
+      // Warm sweep: start dark, bloom slightly past the cutoff mid-chord, then settle back down.
+      const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1.6;
+      lp.frequency.setValueAtTime(cutoff * 0.45, t);
+      lp.frequency.exponentialRampToValueAtTime(cutoff * 1.15, t + Math.max(0.05, duration * 0.5));
+      lp.frequency.exponentialRampToValueAtTime(cutoff * 0.7, t + duration + 0.3);
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, t);
       g.gain.linearRampToValueAtTime(level, t + Math.min(0.4, duration * 0.3));
