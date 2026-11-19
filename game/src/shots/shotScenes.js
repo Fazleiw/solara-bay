@@ -193,7 +193,7 @@ const SCENES = {
   },
 
   garage(game, tools) {
-    prepare(game, 19.7, 6, { respect: 2750 });
+    prepare(game, 19.45, 6, { respect: 2750 });
     const p = game.player;
     game.audio.radio.setStation(1);
     giveWeapon(p.inventory, 'pistol', 60);
@@ -211,7 +211,7 @@ const SCENES = {
     game.ui.openGarage();
     game.garageMenu.select(2);
     // A low three-quarter view of the car on the forecourt, the lit workshop door behind it.
-    game.camera.setPose(car.x - 7.5, 1.5, car.z - 7.5, car.x + 3.2, 2.2, car.z + 4, 52);
+    game.camera.setPose(car.x - 7.2, 1.7, car.z - 7.2, car.x + 3.4, 1.4, car.z + 4.4, 54);
     clearLens(game, 4);
   },
 };

@@ -80,6 +80,8 @@ export function createGarageMenu(game, { onClose }) {
       // The menu takes the right of the screen: the radio and vehicle cards and the bay marker step aside.
       document.getElementById('hud').classList.add('garage-open');
       game.garage.marker.setVisible(false);
+      game.garage.placeTavo();
+      game.dialogue.say([{ who: 'tavo', text: game.wanted.level ? "Inside, quick! Fresh paint and new plates, and they'll never know it was you." : `Engine, armour, brakes... what are we doing to the ${car().type.name} today, Dani?` }]);
       render();
     },
     close,

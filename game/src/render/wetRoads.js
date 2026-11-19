@@ -1,6 +1,6 @@
 // Rain-slick streets after dark: the city is rendered a second time from a camera mirrored in
 // the road plane (y = 0) into a half-resolution target, and the asphalt materials sample it with
-// a little ripple, a Fresnel falloff and patchy puddles, so neon signs, lit windows, headlights
+// a little ripple, a Fresnel falloff and patchy puddles (on roads, crossings and paved lots), so neon signs, lit windows, headlights
 // and police light bars smear across the wet road. Wetness follows the night factor.
 import * as THREE from 'three';
 
@@ -41,10 +41,13 @@ const PATCH_FRAG_BODY = /* glsl */`
     refl += texture2D(tReflect, ruv - vec2(0.0, streak * 2.2)).rgb * 0.13;
     refl += texture2D(tReflect, ruv + vec2(0.0, streak * 3.6)).rgb * 0.05;
     refl += texture2D(tReflect, ruv - vec2(0.0, streak * 3.6)).rgb * 0.05;
-    float facing = clamp(dot(normalize(vViewPosition), normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz)), 0.0, 1.0);
+    vec3 viewUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+    float facing = clamp(dot(normalize(vViewPosition), viewUp), 0.0, 1.0);
+    // Only surfaces that face the sky hold water (never kerb sides or walls).
+    float level = smoothstep(0.9, 0.99, dot(normal, viewUp));
     float fresnel = 0.18 + 0.82 * pow(1.0 - facing, 4.0);
-    float amount = uWet * fresnel * mix(0.55, 1.0, puddle);
-    outgoingLight = outgoingLight * (1.0 - uWet * 0.3) + refl * amount;
+    float amount = uWet * fresnel * mix(0.55, 1.0, puddle) * level;
+    outgoingLight = outgoingLight * (1.0 - uWet * 0.3 * level) + refl * amount;
   }
 `;
 
@@ -71,7 +74,7 @@ export function createWetRoads(renderer, scene, materials) {
     uReflectMatrix: { value: new THREE.Matrix4() },
     uWet: { value: 0 },
   };
-  for (const m of [materials.road, materials.crossing]) makeWet(m, shared);
+  for (const m of [materials.road, materials.crossing, materials.concrete]) makeWet(m, shared);
   // Keep only what stands above the road surface: the road itself, lamp pools and headlight
   // splashes on it, and everything below ground never reach the mirror.
   const clip = [new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.1)];

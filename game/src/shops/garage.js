@@ -2,10 +2,13 @@
 // the workshop menu (ui/garageMenu.js). Services: repair, a respray that loses the police
 // (new colour, wanted level cleared), three stages of engine tune, armour plating and race
 // brakes, each tier gated by respect rank. An upgraded car becomes Dani's personal ride and is
-// saved with the game.
+// saved with the game. Tavo himself waits at the workshop door in his cap and overalls.
 import { LANDMARKS } from '../world/cityLayout.js';
 import { createMarker } from '../gameplay/markers.js';
 import { VEHICLE_TYPES } from '../vehicles/vehicleTypes.js';
+import { Human } from '../characters/human.js';
+
+const TAVO_LOOK = { skin: '#f1c27d', hair: '#2b2b2b', shirt: '#3a86ff', pants: '#1d2b44', shoes: '#111111', vest: '#24324f', hairStyle: 0, height: 1.02, hat: '#3a86ff' };
 
 const RESPRAY_COLORS = ['#ff6b1a', '#e0115f', '#00b4d8', '#ffd23f', '#7b2cbf', '#2d6a4f', '#f8f9fa', '#111111', '#3a86ff'];
 
@@ -43,6 +46,14 @@ export function carStats(car, preview = null) {
 export function createGarage(game) {
   const bay = { x: LANDMARKS.tavoGarage.x, z: LANDMARKS.tavoGarage.z - 13 };
   const marker = createMarker(game, bay.x, bay.z, '#3ef2ff', { radius: 3.4, height: 5, label: "Tavo's Chrome & Paint" });
+  let tavo = null;
+
+  /** Puts Tavo at his workshop door, facing the bay, once Dani has met him. */
+  function placeTavo() {
+    if (tavo) return;
+    tavo = new Human(game, { x: bay.x + 6.2, z: bay.z + 6.4, heading: Math.PI * 0.8, look: TAVO_LOOK, role: 'npc', health: 5000 });
+    tavo.syncMesh(0);
+  }
 
   function repairPrice(car) { return Math.round((1 - car.condition) * 400 / 10) * 10 + 50; }
 
@@ -102,10 +113,11 @@ export function createGarage(game) {
     const p = game.player;
     const open = game.state.storyProgress >= 2;
     marker.setVisible(open);
+    if (open) placeTavo();
     if (!open || !p.vehicle || !marker.contains(p.x, p.z, 1) || game.missions.active?.blocksShops) return null;
     if (input.pressed('interact')) game.ui.openGarage();
     return "Press E to open Tavo's workshop";
   }
 
-  return { bay, marker, services, buy, update, stats: carStats, upgrades: UPGRADES };
+  return { bay, marker, services, buy, update, placeTavo, stats: carStats, upgrades: UPGRADES };
 }
