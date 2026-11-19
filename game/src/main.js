@@ -1,42 +1,52 @@
 // Solara Bay: boot and the main loop. Builds the city and every system into one `game`
-// object, then runs the screens (title, intro, play, pause, shop) with the world advancing in
-// fixed 1/60 s steps and rendering once per frame.
+// object, then runs the screens (title, intro, play, pause, shop, garage) with the world
+// advancing in fixed 1/60 s steps and rendering once per frame through the bloom pipeline.
 //
-// ?shot=cover|drive|police|mission&seed=N stages a screenshot scene from the real game code,
+// ?shot=cover|beach|neon|garage&seed=N stages a screenshot scene from the real game code,
 // renders it and sets window.__shotReady (see shots/shotScenes.js).
 import * as THREE from 'three';
-import { MAX_FRAME, POPULATION, STEP } from './config.js';
-import { rng } from './core/random.js';
-import { createInput } from './core/input.js';
-import { createEventBus } from './core/events.js';
-import { loadGame, loadSettings } from './core/save.js';
-// Gameplay systems first: story and side missions, the wanted level and police, traffic, people.
+// The Bay Police: wanted level, pursuit units, helicopter, roadblocks, dispatch, witnesses.
+import { createPolice } from './police/policeForce.js';
+import { createWantedSystem } from './police/wantedLevel.js';
+import { createWitnesses } from './police/witnesses.js';
+// Story chapters, side jobs, collectibles, respect, rival crews and shops.
 import { createMissionSystem } from './missions/missionSystem.js';
 import { createSideJobs } from './missions/sideJobs.js';
 import { createCollectibles } from './missions/collectibles.js';
-import { createWantedSystem } from './ai/wanted.js';
-import { createPolice } from './ai/police.js';
-import { createTraffic } from './ai/traffic.js';
-import { createGangs } from './ai/gangs.js';
+import { createRespect } from './progression/respect.js';
+import { createGangs } from './gangs/gangMembers.js';
+import { createTerritory } from './gangs/territory.js';
+import { createGarage } from './shops/garage.js';
+import { createGunStore } from './shops/gunStore.js';
+import { createSafehouse } from './shops/safehouse.js';
+// People, cars, traffic and combat.
 import { createPlayer } from './characters/player.js';
 import { createPedestrians } from './characters/pedestrians.js';
+import { createTraffic } from './ai/traffic.js';
 import { createVehicleManager } from './vehicles/vehicleManager.js';
 import { createCombatSystem } from './combat/combatSystem.js';
 import { createEffects } from './combat/effects.js';
 import { createPickups } from './gameplay/pickups.js';
 import { createGps } from './gameplay/gps.js';
-import { createShops } from './gameplay/shops.js';
 import { createSession, freshState } from './gameplay/session.js';
-// Presentation: HUD, minimap, menus, camera and sound.
+// Presentation: HUD, garage menu, minimap, dialogue, menus, camera, rendering and sound.
 import { createHud } from './ui/hud.js';
+import { createGarageMenu } from './ui/garageMenu.js';
 import { buildMapCanvas } from './ui/mapRenderer.js';
 import { createDialogue } from './ui/dialogue.js';
 import { createMenus } from './ui/menus.js';
 import { createFollowCamera } from './camera/followCamera.js';
+import { createPostFx } from './render/postFx.js';
+import { createWetRoads } from './render/wetRoads.js';
 import { createAudioEngine } from './audio/audioEngine.js';
-// The city itself, the page markup, and the developer scenes.
+// The city itself, core plumbing, the page markup and the developer scenes.
 import { buildCity } from './world/cityGen.js';
 import { LANDMARKS } from './world/cityLayout.js';
+import { MAX_FRAME, POPULATION, STEP } from './config.js';
+import { rng } from './core/random.js';
+import { createInput } from './core/input.js';
+import { createEventBus } from './core/events.js';
+import { loadGame, loadSettings } from './core/save.js';
 import { mountInterface } from './ui/layout.js';
 import { stageShot } from './shots/shotScenes.js';
 import { runSelfTest } from './shots/selfTest.js';
@@ -69,11 +79,13 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
+const post = createPostFx(renderer, scene);
 
 /** The shared game context every system receives. */
 const game = {
   scene,
   renderer,
+  post,
   events: createEventBus(),
   humans: new Set(),
   markers: new Set(),
@@ -88,6 +100,13 @@ const game = {
 };
 
 game.world = buildCity(scene, renderer);
+// Streets turn rain-slick after dark and mirror the neon (render/wetRoads.js).
+game.wet = createWetRoads(renderer, scene, game.world.materials);
+post.prepass = (camera) => {
+  const night = game.world.dayNight.state.night;
+  game.wet.settings.wetness = Math.min(1, night * 1.15) * 0.9;
+  game.wet.render(camera);
+};
 game.camera = createFollowCamera(game, window.innerWidth / window.innerHeight);
 game.effects = createEffects(scene);
 game.vehicles = createVehicleManager(game);
@@ -98,15 +117,20 @@ game.traffic = createTraffic(game);
 game.wanted = createWantedSystem(game);
 game.police = createPolice(game);
 game.gangs = createGangs(game);
+game.territory = createTerritory(game);
+game.witnesses = createWitnesses(game);
+game.respect = createRespect(game);
 game.pickups = createPickups(game);
 game.collectibles = createCollectibles(game);
 game.gps = createGps(game);
 game.missions = createMissionSystem(game);
 game.side = createSideJobs(game);
-game.shops = createShops(game);
+game.gunStore = createGunStore(game);
+game.garage = createGarage(game);
+game.safehouse = createSafehouse(game);
 const mapCanvas = buildMapCanvas(game.world.collision);
 game.hud = createHud(game, mapCanvas);
-game.dialogue = createDialogue(game, { box: document.getElementById('hud-dialogue'), portrait: document.getElementById('hud-portrait'), speaker: document.getElementById('hud-speaker'), line: document.getElementById('hud-line') });
+game.dialogue = createDialogue(game, { box: document.getElementById('hud-dialogue'), portrait: document.getElementById('hud-portrait'), speaker: document.getElementById('hud-speaker'), role: document.getElementById('hud-role'), line: document.getElementById('hud-line') });
 game.audio = createAudioEngine(game);
 game.audio.onRadioChange = (station) => game.hud.radioToast(station);
 const session = createSession(game);
@@ -172,6 +196,15 @@ function resume() {
 }
 const openShop = game.ui.openShop;
 game.ui.openShop = () => { mode = 'shop'; input.releaseLock(); openShop(); };
+game.garageMenu = createGarageMenu(game, { onClose() { mode = 'play'; input.requestLock(); } });
+game.ui.openGarage = () => {
+  mode = 'shop';
+  input.releaseLock();
+  const car = game.player.vehicle;
+  car.controls.throttle = 0;
+  car.controls.handbrake = true;
+  game.garageMenu.open();
+};
 
 function showTitle() {
   mode = 'title';
@@ -204,6 +237,8 @@ function simulate(dt) {
   h.syncMesh(dt);
   game.peds.update(dt);
   game.gangs.update(dt);
+  game.territory.update(dt);
+  game.witnesses.update(dt);
   game.pickups.update(dt);
   game.collectibles.update(dt);
   game.missions.update(dt);
@@ -211,7 +246,7 @@ function simulate(dt) {
 
 /** Once-per-frame interactions that read key presses: shops, the save point and side jobs. */
 function interactions(dt) {
-  const shopPrompt = game.shops.update(input);
+  const shopPrompt = game.gunStore.update(input) ?? game.garage.update(input) ?? game.safehouse.update(input);
   const jobPrompt = game.side.update(dt, input);
   const prompt = shopPrompt ?? jobPrompt;
   if (prompt) game.hud.prompt(prompt);
@@ -252,13 +287,15 @@ function frame(frameDt) {
   game.audio.update(frameDt, mode !== 'play');
   game.dialogue.update(mode === 'play' ? frameDt : 0);
   if (mode === 'play' || mode === 'paused' || mode === 'shop') game.hud.update(frameDt);
-  renderer.render(scene, game.camera.camera);
+  post.render(game.camera.camera);
   input.endFrame();
 }
 
 function resize() {
   const w = canvas.clientWidth || window.innerWidth, h = canvas.clientHeight || window.innerHeight;
   renderer.setSize(w, h, false);
+  post.setSize(w, h);
+  game.wet.setSize(w, h);
   game.camera.camera.aspect = w / h;
   game.camera.camera.updateProjectionMatrix();
 }
@@ -281,7 +318,7 @@ if (params.has('selftest')) {
   game.shotMode = true;
   game.hud.setVisible(true);
   runSelfTest(game, { simulate, input, session, interactions }, reportError);
-  renderer.render(scene, game.camera.camera);
+  post.render(game.camera.camera);
   document.title = 'Solara Bay · selftest done';
 } else if (shot) {
   mode = 'play';
@@ -293,7 +330,7 @@ if (params.has('selftest')) {
     game.hud.update(1 / 60);
     game.world.update(0, new THREE.Vector3(game.player.x, 0, game.player.z), game.camera.camera);
     game.effects.update(0, game.camera.camera, renderer.domElement.height);
-    renderer.render(scene, game.camera.camera);
+    post.render(game.camera.camera);
     painted += 1;
     requestAnimationFrame(paint);
     if (painted === 3) {

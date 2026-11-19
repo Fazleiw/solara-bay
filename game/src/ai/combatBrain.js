@@ -5,7 +5,7 @@ import { rng } from '../core/random.js';
 import { WEAPONS } from '../combat/weapons.js';
 
 export function createShooterBrain({ weapon = 'pistol', minRange = 6, maxRange = 18, skill = 0.5 } = {}) {
-  return { weapon, minRange, maxRange, skill, cooldown: rng.range(0.6, 1.6), strafe: rng.sign(), strafeTimer: rng.range(1, 3), losTimer: 0, los: false, burst: 0 };
+  return { weapon, minRange, maxRange, skill, cooldown: rng.range(0.6, 1.6), strafe: rng.sign(), strafeTimer: rng.range(1, 3), losTimer: 0, los: false, burst: 0, lastShot: -10 };
 }
 
 /** Current aim point of the player (their car if driving). */
@@ -50,6 +50,7 @@ export function updateShooter(game, human, brain, target, dt) {
     ax /= len; ay /= len; az /= len;
     const inaccuracy = (1 - brain.skill) * 0.09 + d * 0.0022;
     game.combat.fire(human, brain.weapon, ox, oy, oz, ax, ay, az, { inaccuracy, damageScale: 0.36 });
+    brain.lastShot = game.clock;
     if (def.auto) {
       brain.burst = brain.burst > 0 ? brain.burst - 1 : rng.int(3, 6);
       brain.cooldown = brain.burst > 0 ? def.rate * 1.4 : rng.range(0.9, 1.8);

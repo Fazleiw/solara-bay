@@ -14,6 +14,7 @@ import { createChunk, createSignRegistry, finishChunk } from './buildKit.js';
 import * as districts from './buildings.js';
 import * as landmarks from './landmarks.js';
 import { buildProps } from './props.js';
+import { plantBoulevards } from './boulevards.js';
 import { createWater } from './water.js';
 import { createSky } from './sky.js';
 import { createDayNight } from './dayNight.js';
@@ -87,6 +88,7 @@ export function buildCity(scene, renderer) {
   landmarks.buildCausewayBridge(extraCtx);
   landmarks.buildDocksideCranes(extraCtx);
   landmarks.buildDistantHills(extraCtx);
+  plantBoulevards(props, extra);
   finishChunk(extra, materials, city);
   materials.neonSigns = signs.build(city);
 

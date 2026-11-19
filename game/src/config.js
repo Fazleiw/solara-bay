@@ -55,8 +55,8 @@ export const WANTED = {
   sightRange: 75,
   evadeBase: 9,
   evadePerStar: 2.5,
-  roadblockFromStar: 3,
-  helicopterFromStar: 4,
+  roadblockFromStar: 4,
+  helicopterFromStar: 3,
 };
 
 export const COLORS = {

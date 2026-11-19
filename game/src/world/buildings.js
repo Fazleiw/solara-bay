@@ -107,6 +107,12 @@ export function buildDecoBlock(ctx, cx, cz) {
       const sx = fx + (nz ? sideOffset : 0), sz = fz + (nx ? sideOffset : 0);
       if (rng.chance(0.85)) wallSign(ctx.signs.neon(rng.int(0, NEON_SIGNS.length - 1)), sx, KERB + h - 2, sz, 8, 2, nx, nz);
       awning(ctx, fx - (nz ? sideOffset : 0), KERB + 3.1, fz - (nx ? sideOffset : 0), 6, nx, nz, rng.pick(['#ff6f91', '#2ec4b6', '#ffbf69', '#9b5de5']));
+      // Neon blade strips up both edges of the fin and a shop sign over the street-level awning
+      // (picked from the position, so the rest of the block layout keeps its random sequence).
+      const pick = Math.abs(Math.round(fx * 7 + fz * 13));
+      const bladeColor = ['#ff3ec8', '#3ef2ff', '#b26bff', '#ff9a3c'][pick % 4];
+      for (const e of [-1, 1]) ctx.chunk.neon.box(fx + nx * 0.45 + (nz ? e * 1.55 : 0), KERB + 4.2, fz + nz * 0.45 + (nx ? e * 1.55 : 0), 0.14, h - 0.6, 0.14, bladeColor);
+      wallSign(ctx.signs.neon(pick % NEON_SIGNS.length), fx - (nz ? sideOffset : 0) + nx * 0.4, KERB + 4.7, fz - (nx ? sideOffset : 0) + nz * 0.4, 6, 1.5, nx, nz);
       // Neon tube along the crown edge.
       ctx.chunk.neon.box(x + nx * (w / 2 + 0.35), KERB + h + 0.5, z + nz * (d / 2 + 0.35), nx ? 0.12 : w * 0.9, 0.12, nz ? 0.12 : d * 0.9, rng.pick(['#ff3ec8', '#3ef2ff', '#ffd166', '#7dffb3']));
     }

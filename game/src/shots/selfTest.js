@@ -4,7 +4,7 @@
 // pass or the error it threw, so a headless browser can check the whole game in one load.
 import { STEP } from '../config.js';
 import { giveWeapon } from '../combat/weapons.js';
-import { STORY_MISSIONS } from '../missions/storyMissions.js';
+import { CHAPTERS } from '../missions/chapters.js';
 import { LANDMARKS } from '../world/cityLayout.js';
 
 export function runSelfTest(game, { simulate, input, session, interactions }, report) {
@@ -75,7 +75,7 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     const car = game.vehicles.list.find((v) => !v.destroyed && v !== p.vehicle);
     if (car) { car.damage(5000, 'player'); run(5.5); if (!car.destroyed) throw new Error('car did not explode'); }
   });
-  for (const def of STORY_MISSIONS) {
+  for (const def of CHAPTERS) {
     step(`mission ${def.id}`, () => {
       game.wanted.clear();
       game.police.reset();
@@ -107,7 +107,7 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
   });
   step('shop', () => {
     game.state.cash = 5000;
-    const r = game.shops.buy('smg');
+    const r = game.gunStore.buy('smg');
     if (!r.startsWith('Bought')) throw new Error(r);
     game.ui.openShop();
     game.ui.closeShop();

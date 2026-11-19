@@ -41,12 +41,30 @@ export class Vehicle {
     this.pitch = 0;
     this.fwdSpeed = 0;
     this.latSpeed = 0;
+    this.spiked = false;
+    /** Garage upgrades, each 0-3: engine tune, armour plating, race brakes. */
+    this.tune = { engine: 0, armor: 0, brakes: 0 };
     game.scene.add(this.model.group);
     this.syncMesh();
   }
 
   get speed() {
     return Math.hypot(this.vx, this.vz);
+  }
+
+  get maxSpeed() { return this.type.maxSpeed * (1 + this.tune.engine * 0.07); }
+  get accel() { return this.type.accel * (1 + this.tune.engine * 0.12); }
+  get brakeForce() { return this.type.brake * (1 + this.tune.brakes * 0.15); }
+  get maxHealth() { return this.type.health * (1 + this.tune.armor * 0.3); }
+  /** Condition from 0 (wreck) to 1 (showroom). */
+  get condition() { return Math.max(0, this.health / this.maxHealth); }
+
+  /** The gear a six-speed box would be in: 'R', 'N' or 1-6. */
+  get gear() {
+    if (this.fwdSpeed < -0.5) return 'R';
+    const ratio = this.fwdSpeed / this.maxSpeed;
+    if (ratio < 0.02) return 'N';
+    return Math.min(6, 1 + Math.floor(Math.pow(ratio, 0.8) * 6));
   }
 
   get forwardX() { return Math.sin(this.heading); }
@@ -81,14 +99,15 @@ export class Vehicle {
     let lat = this.vx * rx + this.vz * rz;
     const ground = groundHeightAt(this.x, this.z);
     const onSand = ground !== null && ground < -0.01 || this.x > 287 && this.x < 352 && this.z > -210;
-    const accel = t.accel * (onSand ? 0.65 : 1) * (this.health < t.health * 0.2 ? 0.6 : 1);
+    const accel = this.accel * (onSand ? 0.65 : 1) * (this.condition < 0.2 ? 0.6 : 1);
+    const maxSpeed = this.maxSpeed * (this.spiked ? 0.55 : 1), brake = this.brakeForce;
 
     if (c.throttle > 0) {
-      if (fwd < -0.5) fwd += t.brake * c.throttle * dt;
-      else if (fwd < t.maxSpeed) fwd += accel * c.throttle * dt * (1 - (fwd / t.maxSpeed) * 0.55);
+      if (fwd < -0.5) fwd += brake * c.throttle * dt;
+      else if (fwd < maxSpeed) fwd += accel * c.throttle * dt * (1 - (fwd / maxSpeed) * 0.55);
     } else if (c.throttle < 0) {
-      if (fwd > 0.5) fwd -= t.brake * -c.throttle * dt;
-      else if (fwd > -t.maxSpeed * 0.3) fwd -= accel * 0.6 * -c.throttle * dt;
+      if (fwd > 0.5) fwd -= brake * -c.throttle * dt;
+      else if (fwd > -maxSpeed * 0.3) fwd -= accel * 0.6 * -c.throttle * dt;
     } else {
       fwd -= fwd * 0.45 * dt + Math.sign(fwd) * Math.min(Math.abs(fwd), 0.6 * dt);
     }
@@ -99,7 +118,7 @@ export class Vehicle {
     const targetSteer = c.steer * t.steer * speedFactor;
     this.steerAngle += (targetSteer - this.steerAngle) * Math.min(1, dt * 9);
     let yawRate = (fwd / t.wheelbase) * Math.tan(this.steerAngle);
-    let grip = t.grip * (onSand ? 0.7 : 1);
+    let grip = t.grip * (onSand ? 0.7 : 1) * (this.spiked ? 0.45 : 1);
     if (c.handbrake && Math.abs(fwd) > 4) {
       yawRate *= 1.55;
       grip = t.driftGrip;
@@ -187,7 +206,7 @@ export class Vehicle {
     const t = this.type;
     const fx = Math.sin(this.heading), fz = Math.cos(this.heading);
     const ex = this.x + fx * t.length * 0.38, ez = this.z + fz * t.length * 0.38;
-    const ratio = this.health / t.health;
+    const ratio = this.condition;
     if (!this.destroyed && ratio < 0.4 && rng.next() < (ratio < 0.2 ? 0.6 : 0.25)) this.game.effects.smoke(ex, this.y + 1.0, ez, ratio < 0.2 ? 0.25 : 0.55);
     if (this.burnTimer > 0 && !this.destroyed) {
       this.game.effects.fire(ex, this.y + 1.0, ez);
@@ -212,8 +231,19 @@ export class Vehicle {
   }
 
   repair() {
-    this.health = this.type.health;
+    this.health = this.maxHealth;
     this.burnTimer = 0;
+    this.spiked = false;
+  }
+
+  /** A fresh coat of paint: rebuilds the body in the new colour. */
+  repaint(color) {
+    this.game.scene.remove(this.model.group);
+    this.model.body.geometry.dispose();
+    this.color = color;
+    this.model = buildVehicleModel(this.type, color, this.game.world.textures.glow);
+    this.game.scene.add(this.model.group);
+    this.syncMesh();
   }
 
   syncMesh() {
@@ -228,12 +258,18 @@ export class Vehicle {
     }
     if (this.type.bike) m.bodyGroup.rotation.z = -this.yawRate * Math.abs(this.fwdSpeed) * 0.04;
     if (m.lightBar) {
+      // Red and blue alternate, each pulsing with a bright HDR core the bloom pass spreads.
       const on = this.sirenOn && !this.destroyed;
-      const phase = Math.floor(this.game.clock * 8) % 2;
-      m.lightBar.red.color.set(on && phase ? '#ff2a3a' : '#4a1016');
-      m.lightBar.blue.color.set(on && !phase ? '#2a6bff' : '#101a40');
-      m.lightBar.glowL.visible = on && phase === 1;
-      m.lightBar.glowR.visible = on && phase === 0;
+      const phase = (this.game.clock * 3 + this.id * 0.37) % 1;
+      const redI = on ? (phase < 0.5 ? 1 : 0.3) : 0, blueI = on ? (phase < 0.5 ? 0.3 : 1) : 0;
+      const lb = m.lightBar;
+      lb.red.color.setRGB(0.3 + redI * 4.5, 0.05 + redI * 0.25, 0.08 + redI * 0.3);
+      lb.blue.color.setRGB(0.05 + blueI * 0.4, 0.1 + blueI * 1.2, 0.3 + blueI * 5.5);
+      lb.glowL.visible = lb.glowR.visible = on;
+      lb.glowL.material.opacity = redI;
+      lb.glowR.material.opacity = blueI;
+      lb.glowL.scale.setScalar(2.4 + redI * 3.2);
+      lb.glowR.scale.setScalar(2.4 + blueI * 3.2);
     }
   }
 

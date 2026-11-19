@@ -44,6 +44,13 @@ export const VEHICLE_TYPES = {
     colors: ['#f1faee', '#a8dadc', '#457b9d', '#e63946'],
     traffic: 1.2,
   },
+  bastion: {
+    id: 'bastion', name: 'Bastion Armored', body: 'van',
+    length: 6.0, width: 2.35, height: 2.6, wheelbase: 3.6, wheelRadius: 0.46,
+    maxSpeed: 31, accel: 6, brake: 14, grip: 6.2, driftGrip: 1.4, steer: 0.45, mass: 4200, health: 2600,
+    colors: ['#5c6670'], armored: true,
+    traffic: 0,
+  },
   zipline: {
     id: 'zipline', name: 'Zipline 600', body: 'bike',
     length: 2.1, width: 0.8, height: 1.1, wheelbase: 1.4, wheelRadius: 0.33,

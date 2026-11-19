@@ -40,9 +40,11 @@ const fragmentShader = /* glsl */`
     vec3 color = h > 0.0 ? mix(uHorizon, uTop, smoothstep(0.0, 0.55, pow(clamp(h, 0.0, 1.0), 0.7))) : mix(uHorizon, uBottom, clamp(-h * 4.0, 0.0, 1.0));
     float sunDot = max(dot(dir, normalize(uSunDir)), 0.0);
     float sunVisible = smoothstep(-0.12, 0.02, uSunDir.y);
-    color += uSunColor * pow(sunDot, 6.0) * 0.45 * sunVisible;
-    color += uSunColor * pow(sunDot, 60.0) * 0.8 * sunVisible;
-    color += uSunColor * smoothstep(0.9993, 0.9997, sunDot) * 6.0 * sunVisible;
+    // A wide warm haze, a tighter halo and a big low disc that the bloom pass spreads into glare.
+    color += uSunColor * pow(sunDot, 5.0) * 0.5 * sunVisible;
+    color += uSunColor * pow(sunDot, 48.0) * 1.1 * sunVisible;
+    color += uSunColor * pow(sunDot, 600.0) * 3.0 * sunVisible;
+    color += mix(uSunColor, vec3(1.0, 0.95, 0.8), 0.5) * smoothstep(0.9978, 0.9986, sunDot) * 18.0 * sunVisible;
     // Clouds: stretched fbm projected onto a high plane.
     if (h > 0.0) {
       vec2 uv = dir.xz / (h + 0.18) * 1.6 + vec2(uTime * 0.004, uTime * 0.0015);

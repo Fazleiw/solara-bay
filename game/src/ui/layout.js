@@ -1,32 +1,66 @@
-// The interface markup: the HUD (clock, weapon, cash, stars, minimap, bars, location,
-// speedometer, radio toast, prompts, objective, dialogue, crosshair, big messages) and the
-// full-screen panels (title, intro, pause with the city map, shop, ending). It is mounted into
-// the page at boot, before the HUD and menu modules look up their elements.
+// The interface markup: the HUD (mission card, police-response panel, clock, cash, wanted
+// stars, weapon bar, toasts, minimap with district, health, armour and respect, radio and
+// vehicle cards, dialogue box, garage menu, crosshair, big messages) and the full-screen panels
+// (title, intro, pause with the city map, shop, ending). It is mounted into the page at boot,
+// before the HUD and menu modules look up their elements.
 
 const INTERFACE_HTML = `
 <div id="hud" class="hidden">
   <div id="hud-damage"></div>
   <div id="hud-wasted"></div>
   <div id="letterbox"></div>
+
+  <div id="hud-topleft">
+    <section id="hud-mission" class="panel-card hidden">
+      <header><span id="hud-mission-chapter"></span><span id="hud-timer" class="hidden"></span></header>
+      <p id="hud-objective"></p>
+      <div id="hud-target" class="hidden"><span id="hud-target-label"></span><div class="meter"><i id="hud-target-fill"></i></div></div>
+      <div class="stage-row"><div id="hud-stage-segments"></div><span id="hud-stage-label"></span></div>
+      <footer id="hud-mission-next"></footer>
+    </section>
+    <section id="hud-dispatch" class="panel-card hidden">
+      <header><span>POLICE RESPONSE</span><span id="hud-dispatch-count"></span></header>
+      <ol id="hud-dispatch-rows"></ol>
+      <footer id="hud-dispatch-more"></footer>
+    </section>
+  </div>
+
   <div id="hud-topright">
-    <div id="hud-clock">18:00</div>
-    <div id="hud-weapon"><canvas id="hud-weapon-icon" width="184" height="80"></canvas><span id="hud-ammo"></span></div>
+    <div class="tr-row"><span id="hud-clock">18:00</span><span id="hud-daypart"></span></div>
     <div id="hud-cash">$0</div>
     <div id="hud-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
-    <div id="hud-timer" class="hidden"></div>
+    <div id="hud-wanted-tag" class="hidden"></div>
+    <div id="hud-weapons"></div>
   </div>
-  <div id="hud-minimap-wrap">
-    <canvas id="hud-minimap" width="432" height="432"></canvas>
-    <div id="hud-bars"><div class="bar health" id="hud-health-bar"><i id="hud-health"></i></div><div class="bar armor"><i id="hud-armor"></i></div></div>
-  </div>
-  <div id="hud-vehicle" class="hidden"><span id="hud-vehicle-name"></span><span id="hud-speed"></span></div>
-  <div id="hud-location"><span id="hud-area"></span><span id="hud-street"></span></div>
-  <div id="hud-radio" class="hidden"><b id="hud-radio-name"></b><span id="hud-radio-tag"></span></div>
+
+  <div id="hud-toasts"></div>
   <div id="hud-prompt" class="hidden"></div>
-  <div id="hud-notify"></div>
-  <div id="hud-target" class="hidden"><span id="hud-target-label"></span><div class="bar"><i id="hud-target-fill"></i></div></div>
-  <div id="hud-dialogue" class="hidden"><canvas id="hud-portrait" width="128" height="128"></canvas><div><b id="hud-speaker"></b><p id="hud-line"></p></div></div>
-  <div id="hud-objective"></div>
+
+  <div id="hud-bottomleft">
+    <div id="hud-minimap-wrap"><canvas id="hud-minimap" width="440" height="440"></canvas></div>
+    <div id="hud-status">
+      <div id="hud-district"><i id="hud-district-dot"></i><div><b id="hud-area"></b><span id="hud-street"></span></div></div>
+      <div id="hud-crew" class="hidden"></div>
+      <div class="stat-bar health" id="hud-health-bar"><em>+</em><div class="meter"><i id="hud-health"></i></div></div>
+      <div class="stat-bar armor"><em>◆</em><div class="meter"><i id="hud-armor"></i></div></div>
+      <div id="hud-respect"><div class="respect-head"><b id="hud-respect-rank"></b><span id="hud-respect-title"></span></div><div class="meter gold"><i id="hud-respect-fill"></i></div><small id="hud-respect-xp"></small></div>
+    </div>
+  </div>
+
+  <div id="hud-bottomright">
+    <section id="hud-radio" class="panel-card hidden">
+      <div class="radio-text"><b id="hud-radio-name"></b><span id="hud-radio-song"></span><small id="hud-radio-artist"></small></div>
+      <canvas id="hud-eq" width="120" height="72"></canvas>
+    </section>
+    <section id="hud-vehicle" class="panel-card hidden">
+      <header><span id="hud-vehicle-name"></span><span id="hud-vehicle-tune"></span></header>
+      <div class="condition"><span>CONDITION</span><div class="meter"><i id="hud-vehicle-condition"></i></div><b id="hud-vehicle-condition-pct"></b></div>
+      <div class="speed-row"><span id="hud-speed"></span><small>KM/H</small><span id="hud-gear"></span></div>
+    </section>
+  </div>
+
+  <div id="hud-dialogue" class="hidden"><canvas id="hud-portrait" width="160" height="160"></canvas><div class="dialogue-text"><div class="who"><b id="hud-speaker"></b><span id="hud-role"></span></div><p id="hud-line"></p></div></div>
+  <div id="hud-garage" class="hidden"></div>
   <div id="hud-crosshair" class="hidden"></div>
   <div id="hud-titlecard" class="hidden"><h2 id="hud-titlecard-name"></h2><p id="hud-titlecard-tag"></p></div>
   <div id="hud-big" class="hidden"><h1 id="hud-big-title"></h1><p id="hud-big-sub"></p></div>

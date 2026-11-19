@@ -1,6 +1,7 @@
 // In-car radio: four procedural stations, each a little generative band with its own tempo,
 // chord progression, drum pattern and lead instrument, scheduled ahead on the audio clock.
-// Switching stations crackles with static and shows the station name on the HUD.
+// Each station rotates a tracklist of original songs (the HUD radio card shows station, song
+// and artist with a live equalizer); switching stations crackles with static.
 import { createRandom } from '../core/random.js';
 
 const CHORDS = {
@@ -15,6 +16,7 @@ const pattern = (s) => s.split('').map((c) => c === 'x' ? 1 : c === 'o' ? 0.5 : 
 export const STATIONS = [
   {
     id: 'sunwave', name: 'SUNWAVE 101.7', tagline: 'Retro synths for golden hours', color: '#ff5fd2', bpm: 96, swing: 0,
+    tracks: [['Neon Tidewater', 'Velvet Horizon'], ['Palm Static', 'Cassette Saints'], ['Overdrive Dreams', 'Mira Solstice'], ['Last Light on Marisol', 'Glass Lagoon']],
     progression: ['Am', 'F', 'C', 'G'],
     kick: pattern('x.......x.......'), snare: pattern('....x.......x...'), hat: pattern('o.o.o.o.o.o.o.o.'),
     play(s, out, t, step, chord, bar, rng, dur) {
@@ -26,6 +28,7 @@ export const STATIONS = [
   },
   {
     id: 'bayside', name: 'BAYSIDE BASS 94.3', tagline: 'Club heat from Vista Centro', color: '#3ef2ff', bpm: 124, swing: 0,
+    tracks: [['Concrete Pulse', 'DJ Kitebird'], ['Midnight Toll', 'Subharbor'], ['Hydrant', 'Low Orbit Kids'], ['Vista Heat', 'Kai Montrell']],
     progression: ['Fm', 'Db', 'Ab', 'Eb'],
     kick: pattern('x...x...x...x...'), snare: pattern('....x.......x...'), clap: true, hat: pattern('..x...x...x...x.'), openHat: true,
     play(s, out, t, step, chord, bar, rng, dur) {
@@ -35,6 +38,7 @@ export const STATIONS = [
   },
   {
     id: 'tropicana', name: 'RADIO TROPICANA 88.9', tagline: 'Island rhythm, all day', color: '#ffb347', bpm: 95, swing: 0,
+    tracks: [['Mango Skyline', 'Los Faroles'], ['Salt & Sugar', 'Marea Social Club'], ['Corazón de Coral', 'Lucía Brava'], ['Sunday on the Strand', 'The Seawall Band']],
     progression: ['C', 'G', 'Am', 'F'],
     kick: pattern('x...x...x...x...'), snare: pattern('...x..x....x..x.'), hat: pattern('oooooooooooooooo'),
     melody: true,
@@ -47,6 +51,7 @@ export const STATIONS = [
   },
   {
     id: 'lowtide', name: 'LOW TIDE 106.1', tagline: 'Lo-fi for the late shift', color: '#9bd5ff', bpm: 78, swing: 0.18,
+    tracks: [['Rain on the Causeway', 'Nightjar'], ['4AM Taxi', 'Moth & Lantern'], ['Slow Ferry', 'Kelp Wave'], ['Lighthouse Hum', 'Paper Satellites']],
     progression: ['Dm7', 'G7', 'Cmaj7', 'Am7'],
     kick: pattern('x......x..x.....'), snare: pattern('....o.......o...'), hat: pattern('o.o.o.o.o.o.o.o.'),
     crackle: true, melody: true,
@@ -59,8 +64,12 @@ export const STATIONS = [
   },
 ];
 
+/** Bars per song before the station rolls on to the next track. */
+const BARS_PER_TRACK = 48;
+
 export function createRadio(engine) {
   let index = 0;
+  const trackOffset = STATIONS.map((_, i) => i);
   let on = false;
   let nextTime = 0;
   let step = 0;
@@ -127,5 +136,13 @@ export function createRadio(engine) {
       engine.onRadioChange?.(STATIONS[index]);
     },
     setStation(i) { index = i; },
+    /** The song on air: { station, title, artist, bpm } (the HUD radio card). */
+    nowPlaying() {
+      const st = STATIONS[index];
+      const [title, artist] = st.tracks[(trackOffset[index] + Math.floor(bar / BARS_PER_TRACK)) % st.tracks.length];
+      return { station: st, title, artist, bpm: st.bpm, on };
+    },
+    /** Picks which song a station is on (scripted scenes). */
+    cueTrack(stationIndex, track) { trackOffset[stationIndex] = track; bar = 0; },
   };
 }

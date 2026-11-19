@@ -52,6 +52,7 @@ export function createCollectibles(game) {
         live.splice(i, 1);
         game.state.medallions.push(m.id);
         game.addCash(MEDALLION_REWARD);
+        game.events.emit('medallionFound', { id: m.id });
         const found = game.state.medallions.length;
         game.audio?.sfx.collect();
         if (found === MEDALLIONS.length) {

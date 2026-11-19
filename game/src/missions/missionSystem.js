@@ -1,8 +1,8 @@
-// The mission framework: start markers for the next story mission, the title card, the
-// mission context (objectives, dialogue, waypoints with GPS, tracked targets, timers, spawned
-// things that get cleaned up), and pass / fail with rewards and an autosave.
+// The mission framework: start markers for the next story chapter, the title card, the
+// mission context (stages, objectives, dialogue, waypoints with GPS, tracked targets, timers,
+// spawned things that get cleaned up), and pass / fail with rewards and an autosave.
 import { createMarker } from '../gameplay/markers.js';
-import { STORY_MISSIONS } from './storyMissions.js';
+import { CHAPTERS } from './chapters.js';
 
 export function createMissionSystem(game) {
   const system = { active: null, startMarker: null, startBlip: null, lockedUntil: 0 };
@@ -15,7 +15,15 @@ export function createMissionSystem(game) {
       data: {},
       elapsed: 0,
       ended: false,
-      objective(text) { game.hud.setObjective(text); },
+      stageIndex: 0,
+      objectiveText: '',
+      objective(text) { ctx.objectiveText = text; game.hud.setObjective(text); },
+      /** Moves to stage `index` of def.stages with a new objective line. */
+      stage(index, text) {
+        if (index !== ctx.stageIndex) game.audio?.sfx.checkpoint?.();
+        ctx.stageIndex = index;
+        ctx.objective(text ?? def.stages?.[index] ?? '');
+      },
       say(lines) { game.dialogue.say(lines); },
       waypoint(x, z, { radius = 3.5, color = '#ffd23f', label = 'Destination', marker = true } = {}) {
         ctx.clearWaypoint();
@@ -74,7 +82,7 @@ export function createMissionSystem(game) {
   }
 
   function nextStory() {
-    return STORY_MISSIONS[game.state.storyProgress] ?? null;
+    return CHAPTERS[game.state.storyProgress] ?? null;
   }
 
   function refreshStartMarker() {
@@ -98,7 +106,7 @@ export function createMissionSystem(game) {
     const ctx = makeContext(def);
     system.active = ctx;
     game.side?.cancel(false);
-    game.hud.titleCard(def.title, def.tagline);
+    game.hud.titleCard(`CHAPTER ${def.chapter} · ${def.title}`, def.tagline);
     game.audio?.sfx.missionStart();
     def.begin(ctx);
     game.events.emit('missionStarted', { id: def.id });
@@ -112,7 +120,7 @@ export function createMissionSystem(game) {
     system.active = null;
     const def = ctx.def;
     if (passed) {
-      game.state.storyProgress = Math.max(game.state.storyProgress, STORY_MISSIONS.indexOf(def) + 1);
+      game.state.storyProgress = Math.max(game.state.storyProgress, CHAPTERS.indexOf(def) + 1);
       game.state.stats.missionsPassed += 1;
       game.addCash(reward);
       game.hud.bigMessage('MISSION PASSED', `${def.title} · $${reward.toLocaleString()}`, '#ffd23f');
@@ -127,9 +135,9 @@ export function createMissionSystem(game) {
     } else {
       game.hud.bigMessage('MISSION FAILED', line ?? '', '#ff5050');
       game.audio?.sfx.missionFailed();
-      if (def.chained) game.state.storyProgress = Math.max(0, STORY_MISSIONS.indexOf(def) - 1);
+      if (def.chained) game.state.storyProgress = Math.max(0, CHAPTERS.indexOf(def) - 1);
     }
-    game.events.emit('missionEnded', { id: def.id, passed });
+    game.events.emit('missionEnded', { id: def.id, passed, chapter: def.chapter });
     refreshStartMarker();
   }
 
@@ -166,9 +174,11 @@ export function createMissionSystem(game) {
     refreshStartMarker,
     nextStory,
     startById(id) {
-      const def = STORY_MISSIONS.find((m) => m.id === id);
+      const def = CHAPTERS.find((m) => m.id === id);
       if (def) start(def);
+      return system.active;
     },
+    chapters: CHAPTERS,
     abort() { if (system.active) finish(false, 0, 'Mission abandoned.'); },
   };
 }

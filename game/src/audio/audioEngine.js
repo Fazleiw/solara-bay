@@ -108,6 +108,12 @@ export function createAudioEngine(game) {
     engine.sfxBus = ctx.createGain();
     engine.musicBus.connect(engine.master);
     engine.sfxBus.connect(engine.master);
+    // The radio card's equalizer reads the music bus through an analyser.
+    engine.analyser = ctx.createAnalyser();
+    engine.analyser.fftSize = 128;
+    engine.analyser.smoothingTimeConstant = 0.75;
+    engine.musicBus.connect(engine.analyser);
+    engine.spectrumData = new Uint8Array(engine.analyser.frequencyBinCount);
     const reverb = ctx.createConvolver();
     reverb.buffer = makeImpulse(ctx);
     engine.reverbSend = ctx.createGain();
@@ -179,5 +185,19 @@ export function createAudioEngine(game) {
 
   engine.sfx = createSfx(engine);
   engine.radio = createRadio(engine);
+  /** `bands` equalizer levels 0-1 from the live music, or null before audio starts. */
+  engine.spectrum = (bands) => {
+    if (!engine.analyser || !engine.radio.current) return null;
+    engine.analyser.getByteFrequencyData(engine.spectrumData);
+    const out = [];
+    const per = Math.floor(engine.spectrumData.length * 0.7 / bands);
+    for (let b = 0; b < bands; b += 1) {
+      let sum = 0;
+      for (let i = 0; i < per; i += 1) sum += engine.spectrumData[1 + b * per + i];
+      out.push(sum / per / 255);
+    }
+    return out;
+  };
+
   return engine;
 }

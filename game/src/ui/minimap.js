@@ -1,7 +1,7 @@
 // The circular radar: the city map turned so the camera's view is up, zooming out with speed,
 // with the GPS route, mission and landmark blips (pinned to the rim when off-screen), police
-// cars and officers flashing red and blue, the police search area, a north marker and the
-// player arrow.
+// cars, officers and the helicopter flashing red and blue, the dashed police search zone,
+// rival crew soldiers, a north marker and the player arrow.
 import { blipPosition, drawBlip, drawPlayerArrow, MAP_SCALE, worldToMap } from './mapRenderer.js';
 
 export function createMinimap(game, canvas, mapCanvas) {
@@ -38,13 +38,16 @@ export function createMinimap(game, canvas, mapCanvas) {
     ctx.drawImage(mapCanvas, -pos.x, -pos.y);
     ctx.restore();
 
-    // Police search area while evading.
+    // The police search zone: it follows Dani while any unit has eyes on, and stays at the
+    // last sighting while Dani hides.
     const w = game.wanted;
-    if (w.level > 0 && w.evading) {
+    if (w.level > 0) {
       const c = project(w.state.lastSeenX - p.x, w.state.lastSeenZ - p.z, angle, worldScale);
-      ctx.beginPath(); ctx.arc(c.x, c.y, 70 * worldScale, 0, Math.PI * 2);
-      ctx.fillStyle = Math.floor(game.clock * 2) % 2 ? 'rgba(255,40,60,0.18)' : 'rgba(40,90,255,0.18)';
+      const r = w.searchRadius * worldScale;
+      ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = Math.floor(game.clock * 2) % 2 ? 'rgba(255,40,60,0.22)' : 'rgba(40,90,255,0.2)';
       ctx.fill();
+      ctx.lineWidth = 4; ctx.setLineDash([12, 8]); ctx.strokeStyle = 'rgba(255,60,80,0.9)'; ctx.stroke(); ctx.setLineDash([]);
     }
     // GPS route.
     const route = game.gps.state.route;
@@ -66,9 +69,16 @@ export function createMinimap(game, canvas, mapCanvas) {
       const q = project(cop.human.x - p.x, cop.human.z - p.z, angle, worldScale);
       if (Math.hypot(q.x - R, q.y - R) < R - 6) drawBlip(ctx, { icon: 'police', size: 6 }, q.x, q.y, 1, game.clock);
     }
-    if (game.police.helicopter) {
-      const hq = project(game.police.helicopter.x - p.x, game.police.helicopter.z - p.z, angle, worldScale);
+    const heli = game.police.helicopter.state;
+    if (heli.active) {
+      const hq = project(heli.x - p.x, heli.z - p.z, angle, worldScale);
       drawBlip(ctx, { icon: 'police', size: 12 }, hq.x, hq.y, 1, game.clock + 0.1);
+    }
+    // Rival crew soldiers on turf, in their colours.
+    for (const m of game.gangs.members) {
+      if (!m.human.alive || m.tag !== 'turf') continue;
+      const q = project(m.human.x - p.x, m.human.z - p.z, angle, worldScale);
+      if (Math.hypot(q.x - R, q.y - R) < R - 6) drawBlip(ctx, { icon: 'dot', color: m.crew === 'velvet' ? '#c04dff' : '#ff4b4b', size: 6 }, q.x, q.y);
     }
     // Nearby Sun Medallions.
     for (const m of game.collectibles.live) {

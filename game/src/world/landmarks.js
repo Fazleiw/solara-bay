@@ -39,6 +39,9 @@ export function buildCocoShack(ctx, cx, cz) {
 export function buildTavoGarage(ctx, cx, cz) {
   facadeBox(ctx, 'warehouse', cx, KERB, cz + 6, 30, 9, 22, '#d8ecf2');
   ctx.chunk.trim.box(cx, KERB, cz - 5.1, 12, 6, 0.4, '#262a30');
+  // The workshop inside the open door: a warm-lit back wall, a floor and a strip light overhead.
+  ctx.chunk.neon.box(cx, KERB + 0.1, cz - 5.36, 11.2, 5.5, 0.04, '#4a3c30');
+  ctx.chunk.neon.box(cx, KERB + 5.7, cz - 5.42, 10, 0.16, 0.08, '#fff2d8');
   ctx.chunk.trim.box(cx, KERB + 9, cz + 6, 30.6, 0.8, 22.6, '#2fb5b0');
   wallSign(ctx.signs.landmark('tavo'), cx, KERB + 7.3, cz - 5, 14, 1.8, 0, -1);
   ctx.chunk.concrete.flat(cx, KERB + 0.02, cz - 15, 44, 18, '#7d7b77', 6, 3);

@@ -1,4 +1,4 @@
-// The play session: progress state (cash, story, medallions, stats), new game and continue,
+// The play session: progress state (cash, story, medallions, respect, personal car, stats), new game and continue,
 // saving to localStorage, the WASTED and BUSTED sequences with their hospital and police
 // station respawns, and the running statistics.
 import { loadGame, saveGame } from '../core/save.js';
@@ -10,6 +10,8 @@ export function freshState() {
     cash: 350,
     storyProgress: 0,
     medallions: [],
+    respect: 0,
+    personalCar: null,
     stats: { missionsPassed: 0, kills: 0, carsStolen: 0, wasted: 0, busted: 0, distance: 0, taxiFares: 0, tacoRuns: 0 },
   };
 }
@@ -29,6 +31,8 @@ export function createSession(game) {
       cash: game.state.cash,
       storyProgress: game.state.storyProgress,
       medallions: game.state.medallions,
+      respect: game.state.respect,
+      personalCar: game.state.personalCar,
       stats: game.state.stats,
       weapons: Object.fromEntries(Object.entries(p.inventory.owned).filter(([id]) => id !== 'fists').map(([id, s]) => [id, s.mag + s.reserve])),
       health: p.human.health,
@@ -70,7 +74,7 @@ export function createSession(game) {
     const data = loadGame();
     if (!data) { session.newGame(); return; }
     resetWorldState();
-    game.state = { ...freshState(), cash: data.cash, storyProgress: data.storyProgress, medallions: data.medallions ?? [], stats: { ...freshState().stats, ...(data.stats ?? {}) } };
+    game.state = { ...freshState(), cash: data.cash, storyProgress: data.storyProgress, medallions: data.medallions ?? [], respect: data.respect ?? 0, personalCar: data.personalCar ?? null, stats: { ...freshState().stats, ...(data.stats ?? {}) } };
     const inv = createInventory();
     for (const [id, ammo] of Object.entries(data.weapons ?? {})) if (WEAPONS[id]) giveWeapon(inv, id, ammo);
     game.player.inventory = inv;
@@ -82,6 +86,7 @@ export function createSession(game) {
     game.world.dayNight.setHour(data.hour ?? 17);
     game.collectibles.build();
     game.missions.refreshStartMarker();
+    game.safehouse.parkPersonalCar();
     game.hud.notify('Welcome back to Solara Bay');
   };
 

@@ -1,88 +1,82 @@
-// The heads-up display: clock, weapon and ammo, cash, wanted stars (flashing while the police
-// search), mission timer, health and armour bars under the minimap, area and street names,
-// vehicle name and speedometer, radio station toast, help prompts, notifications, objectives,
-// target health, crosshair, title cards, big "MISSION PASSED / WASTED / BUSTED" messages and
-// the red damage vignette.
-import { areaName, streetNameAt } from '../world/cityLayout.js';
-import { WEAPONS } from '../combat/weapons.js';
+// The heads-up display: lays out and updates every HUD component each frame. Top left the
+// mission card (ui/missionCard.js) and police-response panel (ui/dispatchPanel.js); top right
+// the clock, cash, wanted stars with their IN SIGHT / SEARCH ZONE tag and the weapon bar
+// (ui/weaponBar.js); bottom left the minimap, district pill, health, armour and respect;
+// bottom right the radio and vehicle cards; plus toasts, help prompts, the crosshair, title
+// cards, MISSION PASSED / WASTED / BUSTED banners and the red damage vignette.
 import { createMinimap } from './minimap.js';
+import { createMissionCard } from './missionCard.js';
+import { createDispatchPanel } from './dispatchPanel.js';
+import { createWeaponBar } from './weaponBar.js';
+import { createRadioCard } from './radioCard.js';
+import { createVehicleCard } from './vehicleCard.js';
+import { createRespectBar } from './respectBar.js';
+import { createDistrictPill } from './districtPill.js';
+import { createToasts } from './toasts.js';
 
 const $ = (id) => document.getElementById(id);
 
-/** Draws a weapon silhouette into the HUD weapon box. */
-function drawWeaponIcon(canvas, id) {
-  const ctx = canvas.getContext('2d');
-  const w = canvas.width, h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#fff';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 4;
-  ctx.lineJoin = 'round';
-  const shape = (pts) => { ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x * w, y * h) : ctx.moveTo(x * w, y * h))); ctx.closePath(); ctx.stroke(); ctx.fill(); };
-  if (id === 'fists') {
-    ctx.beginPath(); ctx.roundRect(w * 0.36, h * 0.2, w * 0.3, h * 0.55, 14); ctx.stroke(); ctx.fill();
-    ctx.fillStyle = '#000';
-    for (let i = 1; i < 4; i += 1) ctx.fillRect(w * 0.36 + i * w * 0.075, h * 0.22, 2, h * 0.26);
-  } else if (id === 'pistol') {
-    shape([[0.3, 0.25], [0.78, 0.25], [0.78, 0.45], [0.52, 0.45], [0.48, 0.85], [0.34, 0.85], [0.36, 0.45], [0.3, 0.45]]);
-  } else if (id === 'smg') {
-    shape([[0.08, 0.3], [0.86, 0.3], [0.86, 0.5], [0.6, 0.5], [0.56, 0.9], [0.46, 0.9], [0.48, 0.5], [0.3, 0.5], [0.24, 0.62], [0.08, 0.62]]);
-  } else {
-    shape([[0.04, 0.38], [0.94, 0.32], [0.94, 0.46], [0.42, 0.5], [0.3, 0.72], [0.12, 0.72], [0.18, 0.5], [0.04, 0.5]]);
-  }
+function dayPart(hour) {
+  if (hour >= 16.5 && hour < 19.4) return 'GOLDEN HOUR';
+  if (hour >= 19.4 || hour < 5.5) return 'NIGHT';
+  if (hour < 11) return 'MORNING';
+  return 'AFTERNOON';
 }
 
 export function createHud(game, mapCanvas) {
   const el = {
-    root: $('hud'), clock: $('hud-clock'), ammo: $('hud-ammo'), weaponIcon: $('hud-weapon-icon'), cash: $('hud-cash'), stars: $('hud-stars'),
-    timer: $('hud-timer'), health: $('hud-health'), healthBar: $('hud-health-bar'), armor: $('hud-armor'), area: $('hud-area'), street: $('hud-street'),
-    vehicle: $('hud-vehicle'), vehicleName: $('hud-vehicle-name'), speed: $('hud-speed'), radio: $('hud-radio'), radioName: $('hud-radio-name'),
-    radioTag: $('hud-radio-tag'), prompt: $('hud-prompt'), notify: $('hud-notify'), objective: $('hud-objective'), target: $('hud-target'),
-    targetLabel: $('hud-target-label'), targetFill: $('hud-target-fill'), crosshair: $('hud-crosshair'), big: $('hud-big'), bigTitle: $('hud-big-title'),
-    bigSub: $('hud-big-sub'), titlecard: $('hud-titlecard'), titleName: $('hud-titlecard-name'), titleTag: $('hud-titlecard-tag'),
-    damage: $('hud-damage'), wasted: $('hud-wasted'), letterbox: $('letterbox'), fps: $('hud-fps'),
+    root: $('hud'), clock: $('hud-clock'), daypart: $('hud-daypart'), cash: $('hud-cash'), stars: $('hud-stars'), wantedTag: $('hud-wanted-tag'),
+    health: $('hud-health'), healthBar: $('hud-health-bar'), armor: $('hud-armor'), prompt: $('hud-prompt'), crosshair: $('hud-crosshair'),
+    big: $('hud-big'), bigTitle: $('hud-big-title'), bigSub: $('hud-big-sub'), titlecard: $('hud-titlecard'), titleName: $('hud-titlecard-name'),
+    titleTag: $('hud-titlecard-tag'), damage: $('hud-damage'), wasted: $('hud-wasted'), letterbox: $('letterbox'), fps: $('hud-fps'),
   };
   const minimap = createMinimap(game, $('hud-minimap'), mapCanvas);
+  const toasts = createToasts(game);
+  const mission = createMissionCard(game);
+  const dispatch = createDispatchPanel(game);
+  const weapons = createWeaponBar(game);
+  const radio = createRadioCard(game);
+  const vehicle = createVehicleCard(game);
+  const respect = createRespectBar(game);
+  const district = createDistrictPill(game, toasts.toast);
   const starEls = [...el.stars.children];
-  const state = { weapon: null, cash: -1, displayedCash: 0, area: '', areaTimer: 0, promptText: null, promptTimer: 0, bigTimer: 0, titleTimer: 0, radioTimer: 0, damage: 0, lastHealth: 100, frames: 0, fpsTime: 0 };
+  const state = { displayedCash: 0, promptText: null, promptTimer: 0, bigTimer: 0, titleTimer: 0, damage: 0, lastHealth: 100, frames: 0, fpsTime: 0 };
 
   function setText(node, text) { if (node.textContent !== text) node.textContent = text; }
   function show(node, visible) { node.classList.toggle('hidden', !visible); }
 
+  // The HUD is laid out for an 800 px tall window and scales with the window.
+  function fit() { el.root.style.zoom = String(Math.max(0.7, Math.min(1.6, window.innerHeight / 800))); }
+  window.addEventListener('resize', fit);
+  fit();
+
+  function updateWanted() {
+    const w = game.wanted;
+    const level = w.level;
+    starEls.forEach((s, i) => s.classList.toggle('on', i < level));
+    el.stars.classList.toggle('flash', w.evading);
+    show(el.wantedTag, level > 0);
+    if (level > 0) {
+      el.wantedTag.className = w.evading ? 'search' : 'seen';
+      setText(el.wantedTag, w.evading ? `SEARCH ZONE · ${Math.round((1 - w.searchProgress) * 100)}% HEAT` : 'IN SIGHT · SEARCH ZONE FOLLOWS YOU');
+    }
+  }
+
   const hud = {
     minimap,
+    toast: toasts.toast,
     setVisible(v) { show(el.root, v); },
-    setObjective(text) {
-      if (!text) { el.objective.innerHTML = ''; return; }
-      el.objective.innerHTML = text.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])).replace(/\*(.+?)\*/g, '<em>$1</em>');
-    },
-    setTimer(seconds) {
-      if (seconds == null) { show(el.timer, false); return; }
-      show(el.timer, true);
-      const m = Math.floor(seconds / 60), s = Math.floor(seconds % 60);
-      setText(el.timer, `${m}:${String(s).padStart(2, '0')}`);
-      el.timer.classList.toggle('low', seconds < 10);
-    },
-    setTargetHealth(fraction, label = '') {
-      if (fraction == null) { show(el.target, false); return; }
-      show(el.target, true);
-      setText(el.targetLabel, label);
-      el.targetFill.style.width = `${Math.max(0, Math.min(1, fraction)) * 100}%`;
-    },
-    /** A help box in the top-left corner; shown while called each frame, or for `seconds`. */
+    setObjective(text) { mission.setObjective(text); },
+    setTimer(seconds) { mission.setTimer(seconds); },
+    setTargetHealth(fraction, label) { mission.setTargetHealth(fraction, label); },
+    /** A help box at the top centre; shown while called each frame, or for `seconds`. */
     prompt(text, seconds = 0) {
       state.promptText = text;
       state.promptTimer = Math.max(state.promptTimer, seconds);
       el.prompt.innerHTML = text.replace(/\b(E|F|T|R|H|M|Space|Shift|Esc)\b(?= to| for)/g, '<kbd>$1</kbd>');
       show(el.prompt, true);
     },
-    notify(text) {
-      const div = document.createElement('div');
-      div.textContent = text;
-      el.notify.appendChild(div);
-      while (el.notify.children.length > 4) el.notify.firstChild.remove();
-      setTimeout(() => div.remove(), 3500);
-    },
+    notify(text) { toasts.toast(text, '', '#9ad1ff'); },
     bigMessage(title, sub = '', color = '#ffd23f', seconds = 4) {
       setText(el.bigTitle, title);
       setText(el.bigSub, sub);
@@ -96,20 +90,18 @@ export function createHud(game, mapCanvas) {
       show(el.titlecard, true);
       state.titleTimer = 3.5;
     },
-    radioToast(station) {
-      setText(el.radioName, station ? station.name : 'RADIO OFF');
-      setText(el.radioTag, station ? station.tagline : '');
-      el.radioName.style.color = station ? station.color : '#ccc';
-      show(el.radio, true);
-      state.radioTimer = 3.2;
-    },
+    radioToast() { radio.flash(); },
     setWasted(on) { el.wasted.style.opacity = on ? '1' : '0'; },
     setLetterbox(on) { el.letterbox.classList.toggle('on', on); },
+    /** Hides the chapter title card and the big banner at once (screenshots, menus). */
+    clearBanners() { show(el.titlecard, false); show(el.big, false); state.titleTimer = 0; state.bigTimer = 0; },
     showEnding() { setTimeout(() => game.ui.showEnding(), game.shotMode ? 0 : 9000); },
     update(dt) {
       const p = game.player;
       const h = p.human;
-      setText(el.clock, game.world.dayNight.clockText());
+      const dn = game.world.dayNight;
+      setText(el.clock, dn.clockText());
+      setText(el.daypart, dayPart(dn.state.hour));
       // Cash counts up smoothly.
       if (game.shotMode) state.displayedCash = game.state.cash;
       if (state.displayedCash !== game.state.cash) {
@@ -118,15 +110,7 @@ export function createHud(game, mapCanvas) {
         el.cash.classList.toggle('gain', diff > 0);
       } else el.cash.classList.remove('gain');
       setText(el.cash, `$${Math.max(0, state.displayedCash).toLocaleString('en-US')}`);
-      // Weapon and ammo.
-      const wid = p.inventory.current;
-      if (wid !== state.weapon) { state.weapon = wid; drawWeaponIcon(el.weaponIcon, wid); }
-      const slot = p.inventory.owned[wid];
-      setText(el.ammo, WEAPONS[wid].melee ? '' : `${slot.mag} / ${slot.reserve}`);
-      // Wanted stars.
-      const level = game.wanted.level;
-      starEls.forEach((s, i) => s.classList.toggle('on', i < level));
-      el.stars.classList.toggle('flash', game.wanted.evading);
+      updateWanted();
       // Health and armour.
       const hp = Math.max(0, h.health / h.maxHealth);
       el.health.style.width = `${hp * 100}%`;
@@ -136,27 +120,23 @@ export function createHud(game, mapCanvas) {
       state.lastHealth = h.health;
       state.damage = Math.max(hp < 0.25 && h.alive ? 0.35 + Math.sin(game.clock * 5) * 0.1 : 0, state.damage - dt * 1.5);
       el.damage.style.opacity = state.damage.toFixed(2);
-      // Location.
-      const area = areaName(p.x, p.z);
-      if (area !== state.area) { state.area = area; state.areaTimer = 5; setText(el.area, area); }
-      state.areaTimer -= dt;
-      el.area.style.opacity = state.areaTimer > 0 || p.vehicle || game.shotMode ? '1' : '0.0';
-      setText(el.street, streetNameAt(p.x, p.z));
-      // Vehicle.
-      show(el.vehicle, !!p.vehicle);
-      if (p.vehicle) {
-        setText(el.vehicleName, p.vehicle.type.name);
-        el.speed.innerHTML = `${Math.round(Math.abs(p.vehicle.fwdSpeed) * 3.6)}<small>KM/H</small>`;
-      }
-      show(el.crosshair, !p.vehicle && h.alive && p.isAiming && wid !== 'fists');
+      show(el.crosshair, !p.vehicle && h.alive && p.isAiming && p.inventory.current !== 'fists');
+      // Components.
+      mission.render();
+      dispatch.render(dt);
+      weapons.render();
+      radio.render(dt);
+      vehicle.render();
+      respect.render();
+      district.render();
+      toasts.update(dt);
+      minimap.draw();
       // Timed elements.
       if (state.promptTimer > 0) state.promptTimer -= dt;
       else if (state.promptText === null) show(el.prompt, false);
       state.promptText = null;
       if (state.bigTimer > 0) { state.bigTimer -= dt; if (state.bigTimer <= 0) show(el.big, false); }
       if (state.titleTimer > 0) { state.titleTimer -= dt; if (state.titleTimer <= 0) show(el.titlecard, false); }
-      if (state.radioTimer > 0) { state.radioTimer -= dt; if (state.radioTimer <= 0) show(el.radio, false); }
-      minimap.draw();
       if (game.settings.showFps) {
         state.frames += 1; state.fpsTime += dt;
         if (state.fpsTime > 0.5) { setText(el.fps, `${Math.round(state.frames / state.fpsTime)} fps`); state.frames = 0; state.fpsTime = 0; }

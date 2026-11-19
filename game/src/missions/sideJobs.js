@@ -116,6 +116,7 @@ export function createSideJobs(game) {
         job.earned += fare;
         game.state.stats.taxiFares += 1;
         game.addCash(fare);
+        game.events.emit('sideJobPaid', { kind: 'taxi', amount: fare });
         game.hud.notify(`Fare paid $${fare} · ${job.fares} in a row`);
         nextFare();
       }
@@ -127,6 +128,7 @@ export function createSideJobs(game) {
       const pay = 120 + Math.round(job.time);
       job.earned += pay;
       game.addCash(pay);
+      game.events.emit('sideJobPaid', { kind: 'taco', amount: pay });
       game.audio?.sfx.pickup(true);
       if (job.drops >= 3) {
         game.state.stats.tacoRuns += 1;

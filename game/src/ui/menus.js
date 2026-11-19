@@ -3,7 +3,7 @@
 // Bayside Arms shop, and the ending card.
 import { saveSettings } from '../core/save.js';
 import { CAST, STORY_INTRO } from '../missions/cast.js';
-import { STORY_MISSIONS } from '../missions/storyMissions.js';
+import { CHAPTERS } from '../missions/chapters.js';
 import { MEDALLIONS } from '../missions/collectibles.js';
 import { createMapScreen } from './mapScreen.js';
 
@@ -100,7 +100,7 @@ export function createMenus(game, mapCanvas, handlers) {
 
   function briefHtml() {
     const s = game.state;
-    const missions = STORY_MISSIONS.map((m, i) => {
+    const missions = CHAPTERS.map((m, i) => {
       const cls = i < s.storyProgress ? 'done' : i === s.storyProgress ? 'next' : 'locked';
       const mark = i < s.storyProgress ? '✔' : i === s.storyProgress ? '▶' : '·';
       return `<div class="${cls}">${mark} ${i + 1}. ${m.title}${i <= s.storyProgress ? ` <span style="opacity:.7">· ${m.tagline}</span>` : ''}</div>`;
@@ -111,13 +111,14 @@ export function createMenus(game, mapCanvas, handlers) {
       <section><h3>Dani Reyes</h3><p>${CAST.dani.bio}</p></section>
       <section><h3>Progress</h3>
         <div>Cash: $${s.cash.toLocaleString()}</div>
-        <div>Story missions: ${s.storyProgress} / ${STORY_MISSIONS.length}</div>
+        <div>Respect ${game.respect.rank} · ${game.respect.title} (${s.respect.toLocaleString()} XP)</div>
+        <div>Story chapters: ${s.storyProgress} / ${CHAPTERS.length}</div>
         <div>Sun Medallions: ${s.medallions.length} / ${MEDALLIONS.length}</div>
         <div>Taxi fares: ${st.taxiFares} · Taco runs: ${st.tacoRuns}</div>
         <div>Cars stolen: ${st.carsStolen} · Takedowns: ${st.kills}</div>
         <div>Times wasted: ${st.wasted} · Busted: ${st.busted}</div>
         <div>Distance driven: ${(st.distance / 1000).toFixed(1)} km</div></section>
-      <section><h3>Side activities</h3><p>Press <b>T</b> in any yellow Solcab to take fares. Step into the orange marker at Coco Loco Tacos for a Taco Run. Bayside Arms in Mercado sells guns and armour. Once Tavo trusts you, drive into his garage forecourt for a respray that shakes off the police.</p></section>
+      <section><h3>Side activities</h3><p>Press <b>T</b> in any yellow Solcab to take fares. Step into the orange marker at Coco Loco Tacos for a Taco Run. Bayside Arms in Mercado sells guns and armour. Once Tavo trusts you, drive into his garage in Deco Row for repairs, a respray that shakes off the police, engine tunes, armour plating and race brakes. Respect from chapters, side jobs, carjackings and escapes unlocks better guns and upgrades. The Velvet Knives hold Deco Row and the Saltjaw Crew the docks: keep your gun holstered on their corners.</p></section>
     </div>`;
   }
 
@@ -156,13 +157,16 @@ export function createMenus(game, mapCanvas, handlers) {
   // ---- Shop ----
   function renderShop(status = '') {
     $('shop-cash').textContent = `Cash: $${game.state.cash.toLocaleString()}`;
-    $('shop-list').innerHTML = game.shops.items.map((item) => `<button data-id="${item.id}"><span>${item.label}${item.detail ? ` <small style="opacity:.6">· ${item.detail}</small>` : ''}</span><span>$${item.price.toLocaleString()}</span></button>`).join('');
+    $('shop-list').innerHTML = game.gunStore.items.map((item) => {
+      const locked = game.gunStore.lockReason(item);
+      return `<button data-id="${item.id}"${locked ? ' style="opacity:.5"' : ''}><span>${item.label}${item.detail ? ` <small style="opacity:.6">· ${item.detail}</small>` : ''}</span><span>${locked ? `🔒 ${locked}` : `$${item.price.toLocaleString()}`}</span></button>`;
+    }).join('');
     $('shop-status').textContent = status;
   }
   $('shop-list').addEventListener('click', (e) => {
     const button = e.target.closest('button');
     if (!button) return;
-    renderShop(game.shops.buy(button.dataset.id));
+    renderShop(game.gunStore.buy(button.dataset.id));
   });
   $('btn-shop-close').addEventListener('click', () => { click(); handlers.onCloseShop(); });
 

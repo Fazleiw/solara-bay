@@ -1,4 +1,4 @@
-// The wanted level: crimes add "heat" (one star per point, up to five), witnessed crimes
+// The wanted level (police/wantedLevel.js): crimes add "heat" (one star per point, up to five), witnessed crimes
 // count for more, and once no officer can see Dani the stars flash and fall away one by one
 // after a search period that grows with the level.
 import { WANTED } from '../config.js';
@@ -13,6 +13,7 @@ export function createWantedSystem(game) {
     lastSeenZ: 0,
     shotCooldown: 0,
     locked: false, // missions can pin the level
+    peak: 0, // highest level this chase reached
   };
 
   function copsNear(x, z, radius) {
@@ -41,6 +42,7 @@ export function createWantedSystem(game) {
       const p = game.player;
       state.lastSeenX = p.x; state.lastSeenZ = p.z;
     }
+    state.peak = Math.max(state.peak, state.level);
     if (state.level > before) game.events.emit('wantedRaised', { level: state.level, before });
   }
 
@@ -51,11 +53,12 @@ export function createWantedSystem(game) {
     state.searchTimer = 0;
     const p = game.player;
     state.lastSeenX = p.x; state.lastSeenZ = p.z;
+    state.peak = Math.max(state.peak, level);
     if (level > before) game.events.emit('wantedRaised', { level, before });
   }
 
   function clear() {
-    state.level = 0; state.heat = 0; state.searchTimer = 0;
+    state.level = 0; state.heat = 0; state.searchTimer = 0; state.peak = 0;
   }
 
   const byPlayer = (source) => source === 'player';
@@ -108,8 +111,8 @@ export function createWantedSystem(game) {
       state.searchTimer = 0;
       state.level -= 1;
       state.heat = state.level;
-      game.events.emit('wantedDropped', { level: state.level });
-      if (state.level === 0) game.events.emit('wantedCleared', {});
+      game.events.emit('wantedDropped', { level: state.level, from: state.peak });
+      if (state.level === 0) { state.peak = 0; game.events.emit('wantedCleared', {}); }
     }
   }
 
@@ -121,6 +124,8 @@ export function createWantedSystem(game) {
     update,
     get level() { return state.level; },
     get evading() { return state.level > 0 && !state.seen; },
+    /** Radius of the search zone around the last sighting, growing with the level. */
+    get searchRadius() { return 45 + state.level * 18; },
     get searchProgress() { return state.searchTimer / (WANTED.evadeBase + WANTED.evadePerStar * Math.max(1, state.level)); },
   };
 }

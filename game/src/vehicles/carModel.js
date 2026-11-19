@@ -66,9 +66,16 @@ function buildBody(b, lights, type, paint) {
     case 'van': {
       b.box(0, 0.35, 0, W, 1.9, L, paint);
       b.taperedBox(0, 1.25, half - 0.55, W * 0.98, 0.95, 1.0, W * 0.92, 0.5, GLASS, -0.2);
-      for (const s of [-1, 1]) b.box(s * (W / 2 + 0.01), 1.45, -0.3, 0.03, 0.6, L * 0.62, GLASS);
+      if (type.armored) {
+        // Armored cash truck: blind steel box, riveted bands, gold company stripe, roof beacon.
+        for (const z of [-L * 0.3, 0, L * 0.18]) b.box(0, 1.3, z, W + 0.05, 1.6, 0.08, '#4a535c');
+        b.box(0, 1.15, -0.2, W + 0.05, 0.22, L * 0.75, '#e0a526');
+        b.box(0, 2.3, 0.2, 0.5, 0.18, 0.5, '#e0a526');
+      } else {
+        for (const s of [-1, 1]) b.box(s * (W / 2 + 0.01), 1.45, -0.3, 0.03, 0.6, L * 0.62, GLASS);
+        b.box(0, 0.88, 0, W + 0.04, 0.12, L * 0.98, '#ff8a3d');
+      }
       b.box(0, 2.25, 0, W * 0.96, 0.08, L * 0.94, '#dfe3e6');
-      b.box(0, 0.88, 0, W + 0.04, 0.12, L * 0.98, '#ff8a3d');
       b.box(0, 0.25, half - 0.05, W * 1.02, 0.3, 0.2, TRIM);
       b.box(0, 0.25, -half + 0.05, W * 1.02, 0.3, 0.2, TRIM);
       addLights(0.7);
