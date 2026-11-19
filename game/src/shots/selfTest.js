@@ -29,6 +29,19 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
   };
   const p = game.player;
 
+  step('audio engine', () => {
+    game.audio.unlock();
+    if (!game.audio.ctx) throw new Error('no AudioContext');
+    const fx = game.audio.sfx;
+    fx.gunshot('pistol', p.x + 5, p.z); fx.gunshot('smg'); fx.gunshot('shotgun', p.x, p.z + 3);
+    fx.explosion(p.x, p.z); fx.crash(0.8, p.x, p.z); fx.punch(true, p.x, p.z); fx.horn(1); fx.horn(0.9, p.x, p.z);
+    fx.scream(p.x, p.z); fx.pickup(true); fx.collect(); fx.checkpoint(); fx.missionStart(); fx.missionPassed();
+    fx.missionFailed(); fx.wasted(); fx.click(); fx.reload(); fx.door(); fx.respray(); fx.staticBurst(); fx.uiSelect();
+    for (let i = 0; i < 6; i += 1) game.audio.radio.next();
+    game.audio.setSiren(0.8);
+    game.audio.setHelicopter(0.5);
+    game.audio.update(0.016, false);
+  });
   step('new game', () => { session.newGame(); run(1.5); });
   step('steal a car', () => {
     run(2);

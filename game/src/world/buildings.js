@@ -6,7 +6,7 @@ import { awning, facadeBox, NEON_SIGNS, rooftopBillboard, streetNormal, wallSign
 
 const KERB = 0.12;
 const LOT = BLOCK_SIZE - GRID.sidewalk * 2; // 48 m buildable square
-const GLASS_TINTS = ['#bfe3ff', '#a9dcec', '#d6e2ff', '#bdf2e6', '#ffe1c4', '#e8d4ff'];
+const GLASS_TINTS = ['#bfe3ff', '#a9dcec', '#d6e2ff', '#a8e8d8', '#ffd9b0', '#9fb8e0', '#e0c49c', '#c8f0ff'];
 const OFFICE_TINTS = ['#ffffff', '#f4ecdf', '#e9eef3', '#f7e3d0'];
 const PASTELS = ['#ffc8d8', '#bff3e0', '#fff0bf', '#c8e6ff', '#e5d1ff', '#ffd8b8', '#d2f7c4', '#ffffff'];
 const ROOF_TILES = ['#c4623f', '#b5553a', '#7d8a96', '#d48a5c'];

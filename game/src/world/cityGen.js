@@ -17,6 +17,7 @@ import { buildProps } from './props.js';
 import { createWater } from './water.js';
 import { createSky } from './sky.js';
 import { createDayNight } from './dayNight.js';
+import { createBoats } from './boats.js';
 
 const DISTRICT_BUILDERS = {
   downtown: districts.buildDowntownBlock,
@@ -93,6 +94,7 @@ export function buildCity(scene, renderer) {
   const water = createWater(scene);
   const sky = createSky(scene);
   const dayNight = createDayNight(scene, renderer, sky, water, materials);
+  const boats = createBoats(scene);
 
   // The lighthouse's sweeping beam, visible after dark.
   const beamMaterial = new THREE.MeshBasicMaterial({ color: '#fff2c0', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
@@ -119,6 +121,7 @@ export function buildCity(scene, renderer) {
       water.update(clock, camera);
       sky.update(clock, camera);
       wheel.update(clock);
+      boats.update(clock);
       beam.rotation.y = clock * 0.6;
       beamMaterial.opacity = night * 0.18;
     },

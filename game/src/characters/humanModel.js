@@ -17,7 +17,7 @@ function part(parent, color, w, h, d, x, y, z) {
   const mesh = new THREE.Mesh(geo.box, mat(color));
   mesh.scale.set(w, h, d);
   mesh.position.set(x, y, z);
-  mesh.castShadow = true;
+  mesh.castShadow = w * h > 0.05; // small parts (arms, hair, shoes) skip the shadow pass
   parent.add(mesh);
   return mesh;
 }

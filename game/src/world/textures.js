@@ -49,17 +49,21 @@ function facadePair(style) {
   };
   const map = canvasTexture(size, size, (ctx) => {
     if (style === 'glass') {
-      const g = ctx.createLinearGradient(0, 0, size, size);
-      g.addColorStop(0, '#9fc4dc'); g.addColorStop(0.5, '#6f9bbd'); g.addColorStop(1, '#4d7697');
+      // Curtain wall: 8 panes by 4 storeys, a sky reflection sweeping across, dark spandrels.
+      const g = ctx.createLinearGradient(0, 0, size * 0.7, size);
+      g.addColorStop(0, '#e4f2fb'); g.addColorStop(0.35, '#9cc6e0'); g.addColorStop(0.7, '#5f8fb4'); g.addColorStop(1, '#3f6d93');
       ctx.fillStyle = g; ctx.fillRect(0, 0, size, size);
-      drawWindows(ctx, (c, x, y, w, h) => {
-        const wg = c.createLinearGradient(x, y, x + w, y + h);
-        wg.addColorStop(0, '#d6ecf7'); wg.addColorStop(0.45, '#7fb0d0'); wg.addColorStop(1, '#3c6688');
-        c.fillStyle = wg; c.fillRect(x, y, w, h);
-      }, null, 3);
-      ctx.fillStyle = '#e8eef2';
-      for (let r = 0; r <= 4; r += 1) ctx.fillRect(0, r * 64 - 2, size, 4);
-      for (let c = 0; c <= 4; c += 1) ctx.fillRect(c * 64 - 1, 0, 2, size);
+      for (let r = 0; r < 4; r += 1) {
+        for (let c = 0; c < 8; c += 1) {
+          ctx.fillStyle = `rgba(${paintRng.chance(0.5) ? '255,255,255' : '20,40,70'},${paintRng.range(0.02, 0.12)})`;
+          ctx.fillRect(c * 32, r * 64, 32, 64);
+        }
+      }
+      ctx.fillStyle = 'rgba(30,45,60,0.55)';
+      for (let r = 0; r < 4; r += 1) ctx.fillRect(0, r * 64 + 50, size, 14);
+      ctx.fillStyle = 'rgba(235,242,248,0.85)';
+      for (let r = 0; r <= 4; r += 1) ctx.fillRect(0, r * 64 - 1, size, 2);
+      for (let c = 0; c <= 8; c += 1) ctx.fillRect(c * 32 - 1, 0, 2, size);
     } else if (style === 'office') {
       ctx.fillStyle = '#ece6da'; ctx.fillRect(0, 0, size, size);
       noise(ctx, size, size, 900, 0.05);
@@ -106,7 +110,19 @@ function facadePair(style) {
       for (let c = 0; c < 4; c += 1) if (lit[c]) ctx.fillRect(c * 64 + 10, 14, 44, 10);
       return;
     }
-    const inset = { glass: 3, office: 12, stucco: 16, house: 18 }[style];
+    if (style === 'glass') {
+      for (let r = 0; r < 4; r += 1) {
+        const floorLit = paintRng.chance(0.55);
+        const tone = paintRng.pick(['#ffe2b0', '#fff4d8', '#cfe8ff', '#ffd08a']);
+        for (let c = 0; c < 8; c += 1) {
+          if (!(floorLit ? paintRng.chance(0.85) : paintRng.chance(0.12))) continue;
+          ctx.fillStyle = tone;
+          ctx.fillRect(c * 32 + 2, r * 64 + 3, 28, 46);
+        }
+      }
+      return;
+    }
+    const inset = { office: 12, stucco: 16, house: 18 }[style];
     const cell = size / 4;
     for (let r = 0; r < 4; r += 1) {
       for (let c = 0; c < 4; c += 1) {

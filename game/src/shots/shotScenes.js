@@ -74,6 +74,7 @@ const SCENES = {
   },
 
   drive(game, tools) {
+    if (new URLSearchParams(location.search).get('v') === '2') { SCENES.driveDeco(game, tools); return; }
     prepare(game, 19.45, 2);
     game.audio.radio.setStation(0);
     const p = game.player;
@@ -92,6 +93,28 @@ const SCENES = {
     run(game, tools, 2.2, ['KeyW']);
     game.hud.radioToast(game.audio.radio.stations[0]);
     game.gps.setTarget(70, -280, '#ffd23f');
+    run(game, tools, 0.3, ['KeyW']);
+  },
+
+  driveDeco(game, tools) {
+    prepare(game, 19.35, 2);
+    game.audio.radio.setStation(0);
+    const p = game.player;
+    const car = game.vehicles.spawn('vantor', 250, 66.5, -Math.PI / 2, { color: '#e0115f' });
+    p.teleport(car.x, car.z + 2);
+    p.enterVehicle(car);
+    car.vx = -17; car.vz = 0;
+    game.camera.alignBehind(-Math.PI / 2, 0.16);
+    trafficCar(game, 'mirela', 192, 66.5, -Math.PI / 2, 9, '#f1faee');
+    trafficCar(game, 'tessaro', 150, 66.5, -Math.PI / 2, 8, '#457b9d');
+    trafficCar(game, 'solcab', 175, 73.5, Math.PI / 2, 10);
+    trafficCar(game, 'haulden', 120, 73.5, Math.PI / 2, 10, '#e9c46a');
+    trafficCar(game, 'cruzer', 228, 73.5, Math.PI / 2, 9);
+    trafficCar(game, 'mirela', 140, 40, 0, 8, '#c8102e');
+    populate(game, 180, 70, 6, 18, 60, 150);
+    run(game, tools, 2.2, ['KeyW']);
+    game.hud.radioToast(game.audio.radio.stations[0]);
+    game.gps.setTarget(-105, 92, '#3ef2ff');
     run(game, tools, 0.3, ['KeyW']);
   },
 

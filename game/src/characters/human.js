@@ -149,8 +149,10 @@ export class Human {
   /** Poses and places the model; called after the owner's AI and physics. */
   syncMesh(dt) {
     const g = this.model.group;
-    g.visible = !this.inVehicle || (this.inVehicle.type.bike ?? false);
-    if (this.inVehicle) return;
+    const cam = this.game.camera?.position;
+    const far = cam && Math.abs(cam.x - this.x) + Math.abs(cam.z - this.z) > 160;
+    g.visible = !far && (!this.inVehicle || (this.inVehicle.type.bike ?? false));
+    if (this.inVehicle || far) return;
     g.position.set(this.x, this.y, this.z);
     g.rotation.y = this.heading;
     const speed = this.speed;
