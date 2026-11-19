@@ -2,11 +2,13 @@
 //
 // The game is this directory's game/ folder: an original open-world crime game on a sun-soaked
 // coast, plain static files that desktop Chrome loads offline. game/index.html boots the ES
-// modules under game/src/ (city generation, vehicles, traffic and pedestrian AI, police and the
-// wanted level, combat, six story missions with side jobs, the HUD and minimap, procedural
-// radio and sound), with three.js vendored as game/vendor/three.module.min.js.
+// modules under game/src/: city generation with palm boulevards and nine districts, vehicles,
+// traffic and pedestrians, the Bay Police (wanted level, named units, helicopter, roadblocks,
+// witnesses), rival crews, combat, eight story chapters with side jobs, respect ranks and garage
+// upgrades, the HUD and minimap, HDR bloom with wet night roads, and procedural radio and sound.
+// three.js is vendored as game/vendor/three.module.min.js.
 //
-// This program hands it in: it copies game/ and screenshots/ (4 JPEGs, 1-cover.jpg first) from
+// This program hands it in: it copies game/ and screenshots/ (4 JPEGs, 1-cover.jpg first, as shots.json lists them) from
 // beside this file to /output and writes /output/dossier.json, the summary the judge reads,
 // with the vendored make.fun library.
 //
@@ -35,6 +37,7 @@ if (existsSync(join(here, 'screenshots'))) cpSync(join(here, 'screenshots'), joi
 const shotList: { name: string }[] = JSON.parse(readFileSync(join(here, 'shots.json'), 'utf8'));
 const missing = shotList.filter((shot) => !existsSync(join(here, 'screenshots', shot.name)));
 if (missing.length) console.warn(`solara-bay: missing screenshots: ${missing.map((shot) => shot.name).join(', ')}`);
+if (shotList.length > 4) console.warn(`solara-bay: shots.json lists ${shotList.length} screenshots; the gate takes 3 or 4`);
 
 writeFileSync(
   join(out, 'dossier.json'),

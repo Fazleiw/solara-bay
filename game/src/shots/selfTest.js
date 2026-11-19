@@ -1,7 +1,9 @@
-// ?selftest=1: a scripted play-through of every system in fast-forward (new game, carjacking,
-// driving and drifting, the radio, gunfire, the wanted level and police, busted, wasted, each
-// story mission, both side jobs, the shop, the menus and save/continue). Each step reports
-// pass or the error it threw, so a headless browser can check the whole game in one load.
+// ?selftest=1: a scripted play-through of every system in fast-forward (new game, carjacking and
+// the witness call, driving and drifting, the radio, gunfire, the wanted level, the police
+// dispatch roster, GULL ONE and roadblocks, busted, wasted, all eight story chapters, both side
+// jobs, respect ranks, the gun store, the garage upgrades, the menus, wet night roads and
+// save/continue). Each step reports pass or the error it threw, so a headless browser can
+// check the whole game in one load.
 import { STEP } from '../config.js';
 import { giveWeapon } from '../combat/weapons.js';
 import { CHAPTERS } from '../missions/chapters.js';
@@ -68,13 +70,36 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     run(6);
     if (!game.police.units.length) throw new Error('no police units spawned');
   });
-  step('helicopter and roadblock levels', () => { game.wanted.setLevel(5); run(4); });
+  step('helicopter, roadblock and dispatch', () => {
+    const car = game.vehicles.spawn('vantor', p.x + 4, p.z, 0);
+    p.enterVehicle(car);
+    game.wanted.setLevel(5);
+    run(0.8, ['KeyW']);
+    if (!game.police.helicopter.state.active) throw new Error(`no helicopter at ${game.wanted.level} stars`);
+    const block = game.police.roadblocks.buildAt(p.x + 60, p.z, 0);
+    if (block.cars.length !== 2) throw new Error('roadblock without cruisers');
+    const { rows } = game.police.roster(5);
+    if (!rows.length || !rows.every((r) => r.callsign && r.status.label)) throw new Error('dispatch roster incomplete');
+    if (!rows.some((r) => r.status.label === 'ROADBLOCK')) throw new Error('roadblock missing from the roster');
+    run(3);
+    p.exitVehicle(true);
+  });
+  step('witness call', () => {
+    game.wanted.clear();
+    game.police.reset();
+    game.peds.spawnNear(p.x, p.z, 3, 8);
+    const target = game.vehicles.spawn('mirela', p.x + 3, p.z, 0);
+    game.events.emit('carJacked', { vehicle: target, driver: null });
+    run(4.5);
+    if (game.witnesses.pending.length) throw new Error('witness call never resolved');
+  });
   step('busted', () => { game.events.emit('playerBusted', {}); run(5.5); if (session.isDead()) throw new Error('did not respawn'); });
   step('wasted', () => { p.human.takeDamage(1000, null); run(5.5); if (!p.human.alive) throw new Error('did not revive'); });
   step('explosion', () => {
     const car = game.vehicles.list.find((v) => !v.destroyed && v !== p.vehicle);
     if (car) { car.damage(5000, 'player'); run(5.5); if (!car.destroyed) throw new Error('car did not explode'); }
   });
+  step('eight chapters', () => { if (CHAPTERS.length !== 8) throw new Error(`${CHAPTERS.length} chapters`); });
   for (const def of CHAPTERS) {
     step(`mission ${def.id}`, () => {
       game.wanted.clear();
@@ -105,12 +130,31 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     if (!game.side.active) throw new Error('taco run did not start');
     game.side.cancel(false);
   });
+  step('respect ranks', () => {
+    game.state.respect = 0;
+    game.respect.award(1400, 'self-test');
+    if (game.respect.rank !== 3) throw new Error(`rank ${game.respect.rank}, expected 3`);
+  });
   step('shop', () => {
     game.state.cash = 5000;
     const r = game.gunStore.buy('smg');
     if (!r.startsWith('Bought')) throw new Error(r);
     game.ui.openShop();
     game.ui.closeShop();
+  });
+  step('garage upgrades', () => {
+    game.state.cash = 20000;
+    game.state.storyProgress = Math.max(game.state.storyProgress, 2);
+    const car = game.vehicles.spawn('vantor', game.garage.bay.x, game.garage.bay.z, 0);
+    p.enterVehicle(car);
+    const before = game.garage.stats(car).speed;
+    const r = game.garage.buy(car, 'engine');
+    if (!r.endsWith('done')) throw new Error(r);
+    if (!(game.garage.stats(car).speed > before)) throw new Error('engine tune did not raise top speed');
+    game.ui.openGarage();
+    game.garageMenu.select(3);
+    game.garageMenu.close();
+    p.exitVehicle(true);
   });
   step('menus', () => {
     for (const tab of ['map', 'brief', 'settings', 'controls']) game.ui.openPause(tab);
@@ -119,6 +163,15 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     game.ui.closePause();
   });
   step('save and continue', () => { game.autosave(); session.continueGame(); run(1); });
-  step('day and night', () => { game.world.dayNight.setHour(22); game.world.update(0.1, { x: 0, y: 0, z: 0 }, game.camera.camera); game.world.dayNight.setHour(12); });
+  step('day, night and wet roads', () => {
+    game.world.dayNight.setHour(22);
+    game.world.update(0.1, { x: 0, y: 0, z: 0 }, game.camera.camera);
+    game.post.render(game.camera.camera);
+    if (!(game.wet.uniforms.uWet.value > 0.5)) throw new Error('roads are not wet at night');
+    game.world.dayNight.setHour(12);
+    game.world.update(0.1, { x: 0, y: 0, z: 0 }, game.camera.camera);
+    game.post.render(game.camera.camera);
+    if (game.wet.uniforms.uWet.value > 0.01) throw new Error('roads still wet at noon');
+  });
   report(`SELFTEST ${results.filter((r) => r.startsWith('ok')).length}/${results.length}\n${results.join('\n')}`);
 }

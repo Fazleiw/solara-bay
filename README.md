@@ -4,23 +4,28 @@
 
 **Solara Bay** is an original open-world crime game set on a sun-soaked coast. It runs in desktop Chrome from plain static files, fully offline, built with three.js and procedural everything: the city, the cars, the people, the textures, the music and the sound.
 
-Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is out, the bay still glows gold at sunset, and Gideon Pike, the man who sold Dani out, runs the waterfront. Auntie Coco has work, Tavo has wheels, and there is a score to settle.
+Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is out, the bay still glows gold at sunset, and Gideon Pike, the man who sold Dani out, runs the waterfront. Auntie Coco has work, Tavo has wheels, Juno can open any safe, and Mara Velasco's Velvet Knives own the neon of Deco Row.
 
-![Solara Bay at golden hour](screenshots/1-cover.jpg)
+![A four-star sunset chase down Palmera St](screenshots/1-cover.jpg)
+
+| | | |
+| --- | --- | --- |
+| ![Carjacking by the pier](screenshots/2-beach.jpg) | ![Velvet Static shootout](screenshots/3-neon.jpg) | ![Tavo's garage](screenshots/4-garage.jpg) |
 
 ## What's in it
 
-- **A whole city.** Seven districts on a 10 × 10 street grid: the glass towers of Vista Centro, the shops of Mercado, the pastel neon of Deco Row, the villas of Palm Grove, the cranes and container stacks of Ironwake Docks, the Coral Strand beach with its pier and the Sol Wheel, and Gull Key's lighthouse across the cable-stayed Causeway Bridge.
-- **Golden hour and night.** A 24-hour day/night cycle with a shader sky, clouds and stars, sun shadows, a shader ocean with sun glitter, lit windows, neon signs, street lamps and their light pools, and headlights after dark.
-- **On foot and by car.** A third-person camera with mouse look, jogging, sprinting and jumping. Walk up to any car and press F to drag the driver out. Seven vehicles handle differently (Mirela Sedan, Vantor RS, Haulden Ranchero, Cruzer Interceptor, Solcab Taxi, Tessaro Shuttle, Zipline 600), with arcade physics, handbrake drifts, tyre smoke and skid marks, damage, smoke, fire and explosions.
-- **A living street.** Traffic follows right-hand lanes, stops at red lights and behind other cars, honks, and panics after a crash. Pedestrians walk the sidewalks, cross at corners, run from gunfire, and sometimes fight back.
-- **Bay Police.** One to five wanted stars. Crimes add heat and witnessed crimes count for more. Cruisers route through the grid and ram. Officers arrest you at one star and shoot from two. Roadblocks appear at three stars and a helicopter with a searchlight at four. The stars flash and fade once nobody can see you. You can end up BUSTED or WASTED, with respawns at the station or the hospital.
-- **Combat.** Fists, the Kobra 9 pistol, the Rattler SMG and the Breaker 12 shotgun, with muzzle flash, tracers, sparks, blood, health and armour.
-- **Story.** Six missions with distinct goals and dialogue cut-ins: *Homecoming*, *Showroom Special* (deliver a car undamaged), *Heat Wave* (lose three stars), *Tail Lights* (chase down a courier), *Ironwake Reckoning* (take out a gang) and *Sunset Run* (a timed race to a boss fight).
-- **Side activities.** Solcab taxi fares, Coco's Taco Run deliveries, 25 hidden Sun Medallions, Bayside Arms (guns, ammo, armour), Tavo's Respray, and pickups around the city.
-- **HUD.** A rotating circular minimap with a GPS route and blips, health and armour bars, wanted stars, cash, weapon and ammo, a clock, the area and street name, a speedometer, objectives, mission timers and radio station toasts.
-- **Menus.** A title screen with a story intro and a pause menu with a full city map (click to set a waypoint), a mission brief and stats, settings and controls. Progress saves to localStorage.
-- **Sound.** Four procedural radio stations (Sunwave 101.7, Bayside Bass 94.3, Radio Tropicana 88.9 and Low Tide 106.1), plus engine notes, sirens, the helicopter, surf, gunshots, crashes and explosions, all synthesised with Web Audio.
+- **A whole city.** Nine districts on a 10 × 10 street grid, each with its own character on the HUD: the glass towers of Vista Centro, the markets of Mercado, the pastel neon of Deco Row, the villas of Palm Grove, the cranes of Ironwake Docks, Lumen Park, the Coral Strand beach with its pier and the Sol Wheel, and Gull Key's lighthouse across the cable-stayed Causeway Bridge. Palmera St, Causeway Blvd and Ocean Promenade are royal-palm boulevards.
+- **Golden hour, neon nights.** A 24-hour cycle with a shader sky, clouds and stars, sun shadows and a glittering ocean, lit windows, neon signs and street lamps. An HDR bloom pipeline makes the sun, neon, headlights and light bars glow, and after dark the streets turn rain-slick and mirror the city in real planar reflections.
+- **On foot and by car.** A third-person camera with mouse look, sprinting and jumping. Walk up to any car and press F to drag the driver out, or bail out of a moving one. Eight vehicles handle differently (Mirela Sedan, Vantor RS, Haulden Ranchero, Cruzer Interceptor, Solcab Taxi, Tessaro Shuttle, Bastion Armored, Zipline 600), with handbrake drifts, tyre smoke, skid marks, damage, fire and explosions.
+- **A living street.** Traffic keeps its lanes, stops at red lights and honks. Pedestrians walk, cross, run from gunfire, sometimes fight back, and pull out a phone when they see a crime: if the witness is still standing a few seconds later, the police get the call.
+- **The Bay Police.** One to five stars. Every unit has a call sign, and the police-response panel lists what each is doing (RAMMING, PURSUIT, FIRING, ON FOOT, ROADBLOCK, SPOTLIGHT). Cruisers route through the grid and ram, officers arrest and shoot, the GULL ONE helicopter sweeps a searchlight from three stars, and at four dispatch parks roadblocks with spike strips across the road ahead. Break line of sight and the search zone on the minimap starts to cool. BUSTED and WASTED respawn you at the station or the hospital.
+- **Combat.** Fists, the Kobra 9 pistol, the Rattler SMG, the Breaker 12 shotgun and the Longreach AR, with muzzle flash, tracers, sparks, health and armour.
+- **Story.** Eight chapters with stages, timers and voiced-style dialogue with painted portraits: *Homecoming*, *Showroom Special*, *Heat Wave*, *Velvet Static* (a neon night shootout with the Velvet Knives and their boss), *Tail Lights*, *Gold Coast Getaway* (an armored-truck heist and a four-star escape), *Ironwake Reckoning* and *Sunset Run*.
+- **Progression.** Respect from chapters, side jobs, carjackings, escapes and crew fights climbs six ranks, from Fresh Out to Golden Coast Legend, unlocking guns at Bayside Arms and upgrade tiers at Tavo's Chrome & Paint: repairs, a respray that loses the heat, engine tunes, armour plating and race brakes, each previewed on stat bars. An upgraded car becomes Dani's own and is saved.
+- **Side activities.** Solcab taxi fares, Coco's Taco Run deliveries, 25 hidden Sun Medallions, rival crew turf, the safehouse save point and pickups around the city.
+- **HUD.** A mission card with chapter, timer, objective, STAGE n/m and what is NEXT; the police-response panel; cash, clock and wanted stars with IN SIGHT / SEARCH ZONE; a five-slot weapon bar with ammo and respect locks; a rotating minimap with GPS route, blips and the police search circle; the district pill; health, armour and respect bars; a radio card with song and artist; a vehicle card with condition, speed and gear; toasts and dialogue.
+- **Menus and saves.** A title screen with a story intro, and a pause menu with the city map (click to set a waypoint), the chapter brief and stats, settings and controls. Progress saves to localStorage.
+- **Sound.** Four procedural radio stations with original song titles (Sunwave 101.7, Bayside Bass 94.3, Radio Tropicana 88.9, Low Tide 106.1), plus engines, sirens, the helicopter, surf, gunfire, crashes and explosions, all synthesised with Web Audio.
 
 ## Controls
 
@@ -30,16 +35,18 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 | Mouse | Look around (click to capture the mouse) |
 | Shift | Sprint |
 | Space | Jump · handbrake drift |
-| F | Steal / enter / exit a car |
+| F | Steal / enter / exit a car (bail out at speed) |
 | Left click / right click | Shoot or punch / aim |
-| 1–4, mouse wheel, Q | Switch weapon |
+| 1–5, mouse wheel, Q | Switch weapon |
 | R | Reload · next radio station (in a car) |
 | H | Horn |
-| E | Interact (shops, save, taco run) · police siren |
+| E | Interact: shops, garage, save, taco run · police siren |
 | T | Taxi fares in a Solcab |
 | C | Look behind |
 | M | City map |
 | Esc / P | Pause |
+
+In Tavo's garage: W / S choose, E buys, Esc drives out.
 
 ## Run it
 
@@ -50,7 +57,7 @@ node serve.ts
 Then open http://localhost:8080 in desktop Chrome. Any static file server pointed at `game/` works too: the game needs no build step and makes no network requests.
 
 Developer extras:
-- `?shot=cover|drive|police|mission&seed=1` stages the screenshot scenes from the real game code.
+- `?shot=cover|beach|neon|garage&seed=1` stages the four screenshot scenes from the real game code (listed in `shots.json`).
 - `?selftest=1` plays through every system in fast-forward and reports each step.
 
 To hand the entry in, run `mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts`.
@@ -58,17 +65,21 @@ To hand the entry in, run `mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts`.
 ## Code layout
 
 ```
-game/index.html            page, HUD markup, menus
+game/index.html            the page: canvas, UI root, import map
 game/src/main.js           boot, game context, fixed-step main loop
 game/src/core/             input, events, seeded random, saves, geometry builder
-game/src/world/            city layout, road network, textures, buildings, landmarks, props, water, sky, day/night
+game/src/world/            city layout, districts, road network, boulevards, buildings, landmarks, props, water, sky, day/night
+game/src/render/           HDR bloom and colour grade, wet-road reflections
 game/src/vehicles/         vehicle types, procedural models, arcade physics, vehicle manager
 game/src/characters/       human model and body, player controller, pedestrians
-game/src/ai/               traffic, police, wanted level, gang AI, shared gunfight brain, route driver
-game/src/combat/           weapons, hitscan combat and explosions, particle effects
-game/src/missions/         cast, mission framework, story missions, side jobs, collectibles
-game/src/gameplay/         session (save, wasted/busted), pickups, shops, GPS, markers
-game/src/ui/               HUD, minimap, map renderer, city map, dialogue, menus, styles
+game/src/ai/               traffic, shared gunfight brain, route driver
+game/src/police/           wanted level, police force, pursuit driving, officers, helicopter, roadblocks, dispatch, witnesses
+game/src/gangs/            rival crews, gang members, territory
+game/src/missions/         cast, mission framework, the eight chapters, side jobs, collectibles
+game/src/progression/      respect ranks
+game/src/shops/            gun store, garage upgrades, safehouse
+game/src/gameplay/         session (save, wasted/busted), pickups, GPS, markers
+game/src/ui/               HUD and its cards, minimap, map, dialogue, portraits, garage menu, menus, styles
 game/src/audio/            audio engine, synth voices, sound effects, procedural radio
 game/src/camera/           third-person follow camera
 game/src/shots/            screenshot scenes and the self-test
