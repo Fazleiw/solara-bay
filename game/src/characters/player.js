@@ -110,13 +110,22 @@ export function createPlayer(game, x, z) {
   function exitVehicle(force = false) {
     const car = player.vehicle;
     if (!car) return;
-    if (!force && car.speed > 9) return;
+    const bail = !force && car.speed > 9;
     const door = car.doorPosition();
     human.x = door.x; human.z = door.z;
     human.y = car.y;
     human.inVehicle = null;
     human.pose = 'idle';
     human.heading = car.heading;
+    if (bail) {
+      // Diving out of a moving car: Dani tumbles along the road and the car rolls on empty.
+      human.pushX = car.vx * 0.55;
+      human.pushZ = car.vz * 0.55;
+      human.vy = 2.5;
+      human.onGround = false;
+      human.knockTimer = 1.1;
+      human.takeDamage(Math.min(35, car.speed * 0.8), null);
+    }
     car.driver = null;
     car.controls.throttle = 0;
     car.controls.handbrake = car.speed < 3;

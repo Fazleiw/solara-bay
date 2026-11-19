@@ -10,31 +10,34 @@ import { rng } from './core/random.js';
 import { createInput } from './core/input.js';
 import { createEventBus } from './core/events.js';
 import { loadGame, loadSettings } from './core/save.js';
-import { buildCity } from './world/cityGen.js';
-import { LANDMARKS } from './world/cityLayout.js';
-import { createFollowCamera } from './camera/followCamera.js';
-import { createEffects } from './combat/effects.js';
-import { createCombatSystem } from './combat/combatSystem.js';
-import { createVehicleManager } from './vehicles/vehicleManager.js';
-import { createPlayer } from './characters/player.js';
-import { createPedestrians } from './characters/pedestrians.js';
-import { createTraffic } from './ai/traffic.js';
+// Gameplay systems first: story and side missions, the wanted level and police, traffic, people.
+import { createMissionSystem } from './missions/missionSystem.js';
+import { createSideJobs } from './missions/sideJobs.js';
+import { createCollectibles } from './missions/collectibles.js';
 import { createWantedSystem } from './ai/wanted.js';
 import { createPolice } from './ai/police.js';
+import { createTraffic } from './ai/traffic.js';
 import { createGangs } from './ai/gangs.js';
+import { createPlayer } from './characters/player.js';
+import { createPedestrians } from './characters/pedestrians.js';
+import { createVehicleManager } from './vehicles/vehicleManager.js';
+import { createCombatSystem } from './combat/combatSystem.js';
+import { createEffects } from './combat/effects.js';
 import { createPickups } from './gameplay/pickups.js';
 import { createGps } from './gameplay/gps.js';
 import { createShops } from './gameplay/shops.js';
 import { createSession, freshState } from './gameplay/session.js';
-import { createCollectibles } from './missions/collectibles.js';
-import { createMissionSystem } from './missions/missionSystem.js';
-import { createSideJobs } from './missions/sideJobs.js';
-import { buildMapCanvas } from './ui/mapRenderer.js';
+// Presentation: HUD, minimap, menus, camera and sound.
 import { createHud } from './ui/hud.js';
+import { buildMapCanvas } from './ui/mapRenderer.js';
 import { createDialogue } from './ui/dialogue.js';
 import { createMenus } from './ui/menus.js';
-import { mountInterface } from './ui/layout.js';
+import { createFollowCamera } from './camera/followCamera.js';
 import { createAudioEngine } from './audio/audioEngine.js';
+// The city itself, the page markup, and the developer scenes.
+import { buildCity } from './world/cityGen.js';
+import { LANDMARKS } from './world/cityLayout.js';
+import { mountInterface } from './ui/layout.js';
 import { stageShot } from './shots/shotScenes.js';
 import { runSelfTest } from './shots/selfTest.js';
 
