@@ -7,7 +7,7 @@
 import { STEP } from '../config.js';
 import { giveWeapon } from '../combat/weapons.js';
 import { CHAPTERS } from '../missions/chapters.js';
-import { LANDMARKS } from '../world/cityLayout.js';
+import { isOnBlock, isWalkable, LANDMARKS } from '../world/cityLayout.js';
 
 export function runSelfTest(game, { simulate, input, session, interactions }, report) {
   const results = [];
@@ -94,7 +94,34 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     if (game.witnesses.pending.length) throw new Error('witness call never resolved');
   });
   step('busted', () => { game.events.emit('playerBusted', {}); run(5.5); if (session.isDead()) throw new Error('did not respawn'); });
-  step('wasted', () => { p.human.takeDamage(1000, null); run(5.5); if (!p.human.alive) throw new Error('did not revive'); });
+  step('wasted: clear hospital respawn and camera', () => {
+    const cash = game.state.cash, progress = game.state.storyProgress;
+    p.human.takeDamage(1000, null);
+    if (!session.isDead()) throw new Error('did not enter WASTED');
+    for (let i = 0; session.isDead() && i < 6 / STEP; i += 1) run(STEP);
+    if (session.isDead() || !p.human.alive || p.controlsLocked || p.vehicle) throw new Error('did not revive on foot with controls');
+    if (game.state.cash !== Math.max(0, cash - 200) || game.state.storyProgress !== progress) throw new Error('respawn changed the fine or story progress');
+
+    // Check the teleport before physics can push Dani out of a bad spawn.
+    const { x, z } = p;
+    const h = p.human, hospital = LANDMARKS.hospital, collision = game.world.collision;
+    if (!isWalkable(x, z) || !isOnBlock(x, z) || Math.hypot(x - hospital.x, z - hospital.z) > 30 || collision.resolveCircle(x, z, h.radius, h.y).hit) {
+      throw new Error(`blocked or off the hospital lot at (${x}, ${z})`);
+    }
+    // The first foot-camera tick should keep the full boom and look away from the hospital.
+    run(STEP);
+    const camera = game.camera;
+    const lens = camera.position, forward = camera.forward();
+    const chestY = h.y + 1.55;
+    const boom = Math.hypot(lens.x - p.x, lens.y - chestY, lens.z - p.z);
+    if (boom < camera.state.distance - 0.05 || !collision.lineOfSight(p.x, chestY, p.z, lens.x, lens.y, lens.z)) {
+      throw new Error(`camera crowded at ${boom.toFixed(2)} m (wanted ${camera.state.distance.toFixed(2)} m)`);
+    }
+    if (forward.x * (x - hospital.x) + forward.z * (z - hospital.z) <= 0) throw new Error('camera faces back toward the hospital');
+    run(0.5, ['KeyW']);
+    input.simulate([]);
+    if ((p.x - x) * forward.x + (p.z - z) * forward.z < 1) throw new Error('Dani cannot walk away after respawn');
+  });
   step('explosion', () => {
     const car = game.vehicles.list.find((v) => !v.destroyed && v !== p.vehicle);
     if (car) { car.damage(5000, 'player'); run(5.5); if (!car.destroyed) throw new Error('car did not explode'); }
