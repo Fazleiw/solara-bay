@@ -15,9 +15,9 @@ export function createFollowCamera(game, aspect) {
 
   function wrap(a) { return Math.atan2(Math.sin(a), Math.cos(a)); }
 
-  /** Direction the camera looks along (unit). */
+  /** Direction the lens looks along through the middle of the screen (unit): where shots go. */
   function forward(out = new THREE.Vector3()) {
-    return out.set(Math.sin(state.yaw) * Math.cos(state.pitch), -Math.sin(state.pitch), Math.cos(state.yaw) * Math.cos(state.pitch));
+    return camera.getWorldDirection(out);
   }
 
   function update(dt, input, settings) {

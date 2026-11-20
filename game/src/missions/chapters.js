@@ -25,8 +25,10 @@ const garageBay = { x: tavo.x, z: tavo.z - 13 };
 const COCO_DROP = { x: lineCoord(9) + 3.5, z: coco.z - 10 };
 /** The Neon Palms corner in Deco Row where the Velvet Knives hold court. */
 export const NEON_PALMS = { x: lineCoord(6) + 18, z: lineCoord(7) - 8 };
-/** The armored truck's run down Ocean Promenade. */
-const TRUCK_START = { x: lineCoord(9) - 3.5, z: lineCoord(3) + 10 };
+/** The armored truck's run down Ocean Promenade, from Vista St to the Ironwake vaults: about 50 s at
+ *  its pace, long enough to get from Tavo's garage to the Promenade and catch it. */
+const TRUCK_START = { x: lineCoord(9) - 3.5, z: lineCoord(2) + 8 };
+const TRUCK_SPEED = 10;
 
 const ESCAPE_OBJECTIVE = "Outrun the heat to Tavo's garage, or lose sight of the cops and slip into Coco's";
 
@@ -313,7 +315,7 @@ export const CHAPTERS = [
       ]);
       const truck = ctx.vehicle('bastion', TRUCK_START.x, TRUCK_START.z, 0);
       ctx.data.truck = truck;
-      ctx.data.driver = attachRouteDriver(g, truck, lineCoord(9) - 3.5, lineCoord(9), { speed: 12 });
+      ctx.data.driver = attachRouteDriver(g, truck, lineCoord(9) - 3.5, lineCoord(9), { speed: TRUCK_SPEED });
       ctx.data.blip = ctx.track(truck, '#ffd23f', 'Armored truck');
       ctx.stage(0, 'Ram the Bastion armored truck off the road on Ocean Promenade');
     },

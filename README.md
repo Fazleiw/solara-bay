@@ -6,21 +6,21 @@
 
 Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is out, the bay still glows gold at sunset, and Gideon Pike, the man who sold Dani out, runs the waterfront. Auntie Coco has work, Tavo has wheels, Juno can open any safe, and Mara Velasco's Velvet Knives own the neon of Deco Row.
 
-![A four-star sunset chase down Palmera St](screenshots/1-cover.jpg)
+![Gold Coast Getaway: tailing the armored truck down Ocean Promenade at five stars](screenshots/1-cover.jpg)
 
 | | | |
 | --- | --- | --- |
-| ![Carjacking by the pier](screenshots/2-beach.jpg) | ![Velvet Static shootout](screenshots/3-neon.jpg) | ![Tavo's garage](screenshots/4-garage.jpg) |
+| ![On foot at the wrecked truck, an officer draws](screenshots/2-heist-on-foot.jpg) | ![The four-star escape: Tavo's garage or Coco's door](screenshots/3-escape.jpg) | ![A witness reports the stolen car in Mercado](screenshots/4-witness.jpg) |
 
 ## What's in it
 
 - **A whole city.** Nine districts on a 10 × 10 street grid, each with its own character on the HUD: the glass towers of Vista Centro, the markets of Mercado, the pastel neon of Deco Row, the villas of Palm Grove, the cranes of Ironwake Docks, Lumen Park, the Coral Strand beach with its pier and the Sol Wheel, and Gull Key's lighthouse across the cable-stayed Causeway Bridge. Palmera St, Causeway Blvd and Ocean Promenade are royal-palm boulevards.
 - **Golden hour, neon nights.** A 24-hour cycle with a shader sky, clouds and stars, sun shadows and a glittering ocean, lit windows, neon signs and street lamps. An HDR bloom pipeline makes the sun, neon, headlights and light bars glow, and after dark the streets turn rain-slick and mirror the city in real planar reflections.
-- **On foot and by car.** A third-person camera with mouse look, sprinting and jumping. Walk up to any car and press F to drag the driver out, or bail out of a moving one. Eight vehicles handle differently (Mirela Sedan, Vantor RS, Haulden Ranchero, Cruzer Interceptor, Solcab Taxi, Tessaro Shuttle, Bastion Armored, Zipline 600), with handbrake drifts, tyre smoke, skid marks, damage, fire and explosions.
+- **On foot and by car.** A third-person camera with mouse look, sprinting and jumping. Behind the wheel the chase camera keeps the car low in the frame with the road opening up ahead, widens only a few degrees with speed, and swings back behind the bonnet once the mouse rests (behind the boot only when reversing for real, not on a tap of S). Walk up to any car and press F to drag the driver out, or bail out of a moving one. Eight vehicles handle differently (Mirela Sedan, Vantor RS, Haulden Ranchero, Cruzer Interceptor, Solcab Taxi, Tessaro Shuttle, Bastion Armored, Zipline 600), with handbrake drifts, tyre smoke, skid marks, damage, fire and explosions.
 - **A living street.** Traffic keeps its lanes, stops at red lights and honks. Pedestrians walk, cross, run from gunfire, sometimes fight back, and pull out a phone when they see a crime: if the witness is still standing a few seconds later, the police get the call.
 - **The Bay Police.** One to five stars. Every unit has a call sign, and the police-response panel lists what each is doing (RAMMING, PURSUIT, FIRING, ON FOOT, ROADBLOCK, SPOTLIGHT). Cruisers route through the grid and ram, officers arrest and shoot, the GULL ONE helicopter sweeps a searchlight from three stars, and at four dispatch parks roadblocks with spike strips across the road ahead. Break line of sight and the search zone on the minimap starts to cool. BUSTED and WASTED respawn you at the station or the hospital.
 - **Combat.** Fists, the Kobra 9 pistol, the Rattler SMG, the Breaker 12 shotgun and the Longreach AR, with muzzle flash, tracers, sparks, health and armour.
-- **Story.** Eight chapters with stages, timers and voiced-style dialogue with painted portraits: *Homecoming*, *Showroom Special*, *Heat Wave*, *Velvet Static* (a neon night shootout with the Velvet Knives and their boss), *Tail Lights*, *Gold Coast Getaway* (an armored-truck heist and a four-star escape), *Ironwake Reckoning* and *Sunset Run*.
+- **Story.** Eight chapters with stages, timers and voiced-style dialogue with painted portraits: *Homecoming*, *Showroom Special*, *Heat Wave*, *Velvet Static* (a neon night shootout with the Velvet Knives and their boss), *Tail Lights*, *Gold Coast Getaway* (an armored-truck heist and a four-star escape that ends at Tavo's garage, which takes Dani in under fire, or at Coco's side door a block away, which only opens once no unit can see Dani and costs a cut; Tavo remembers which), *Ironwake Reckoning* and *Sunset Run*.
 - **Progression.** Respect from chapters, side jobs, carjackings, escapes and crew fights climbs six ranks, from Fresh Out to Golden Coast Legend, unlocking guns at Bayside Arms and upgrade tiers at Tavo's Chrome & Paint: repairs, a respray that loses the heat, engine tunes, armour plating and race brakes, each previewed on stat bars. An upgraded car becomes Dani's own and is saved.
 - **Side activities.** Solcab taxi fares, Coco's Taco Run deliveries, 25 hidden Sun Medallions, rival crew turf, the safehouse save point and pickups around the city.
 - **HUD.** A mission card with chapter, timer, objective, STAGE n/m and what is NEXT; the police-response panel; cash, clock and wanted stars with IN SIGHT / SEARCH ZONE; a five-slot weapon bar with ammo and respect locks; a rotating minimap with GPS route, blips and the police search circle; the district pill; health, armour and respect bars; a radio card with song and artist; a vehicle card with condition, speed and gear; toasts and dialogue.
@@ -57,8 +57,10 @@ node serve.ts
 Then open http://localhost:8080 in desktop Chrome. Any static file server pointed at `game/` works too: the game needs no build step and makes no network requests.
 
 Developer extras:
-- `?shot=cover|beach|neon|garage&seed=1` stages the four screenshot scenes from the real game code (listed in `shots.json`).
-- `?selftest=1` plays through every system in fast-forward and reports each step.
+- The four screenshots are frames of real play in Chrome, driven with keyboard and mouse from a chapter-5 campaign save (listed in `shots.json`).
+- `?shot=cover|beach|neon|garage&seed=1` stages four posed scenes from the game code, kept as a development aid.
+- `?selftest=1` plays through every system in fast-forward and reports each step, both Gold Coast drops included.
+- `node --test tests/*.test.mjs` checks the chase camera's framing (car placement, field of view, look-ahead, recentre rules).
 
 To hand the entry in, run `mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts`.
 
@@ -81,8 +83,9 @@ game/src/shops/            gun store, garage upgrades, safehouse
 game/src/gameplay/         session (save, wasted/busted), pickups, GPS, markers
 game/src/ui/               HUD and its cards, minimap, map, dialogue, portraits, garage menu, menus, styles
 game/src/audio/            audio engine, synth voices, sound effects, procedural radio
-game/src/camera/           third-person follow camera
-game/src/shots/            screenshot scenes and the self-test
+game/src/camera/           third-person follow camera and the chase framing math
+game/src/shots/            posed scenes and the self-test
+tests/                     chase-camera framing test (node --test)
 ```
 
 Everything in the game is original. The only third-party code is three.js (MIT), vendored as `game/vendor/three.module.min.js`.
