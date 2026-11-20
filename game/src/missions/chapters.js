@@ -13,6 +13,7 @@
 //   8 Sunset Run          race the Vantor across the Causeway Bridge to stop Pike at Gull Key
 import { giveWeapon } from '../combat/weapons.js';
 import { attachRouteDriver } from '../ai/routeDriver.js';
+import { GRID, PLAYER } from '../config.js';
 import { LANDMARKS, lineCoord } from '../world/cityLayout.js';
 
 const coco = LANDMARKS.cocoShack.front;
@@ -72,28 +73,80 @@ function finishEscape(ctx, drop, objective) {
   ctx.stage(3, objective);
 }
 
+// West curb of Hibiscus Ave, outside the southbound lane and clear of the junctions.
+const homeCurb = {
+  x: lineCoord(LANDMARKS.safehouse.block[0] + 1) - GRID.road / 2 + 0.9,
+  z: LANDMARKS.safehouse.front.z + 9,
+};
+
+function clearHomeCar(ctx) {
+  const cue = ctx.data.homeCar;
+  if (!cue) return;
+  const { car, blip, spawned, wasPersistent } = cue;
+  const { player, vehicles } = ctx.game;
+  ctx.untrack(blip);
+  ctx.data.homeCar = null;
+  car.persistent = wasPersistent;
+  // A rider keeps the car under the normal traffic cleanup rules; unused loaners go away.
+  if (spawned && !car.destroyed && car !== player.vehicle) vehicles.remove(car);
+}
+
+function driveToCoco(ctx) {
+  clearHomeCar(ctx);
+  ctx.game.dialogue.clear();
+  ctx.stage(1, 'Drive to *Coco Loco Tacos*');
+  ctx.waypoint(coco.x, coco.z, { radius: 5, label: 'Coco Loco Tacos' });
+}
+
+function updateHomeCarHint(ctx) {
+  const { player, vehicles } = ctx.game;
+  const nearby = vehicles.nearestVehicle(player.x, player.z, PLAYER.enterRange, v => !v.destroyed);
+  const goal = nearby ? 'Press *F* to get in' : ctx.data.homeCar ? '*WASD* · Walk to the marked car' : 'Take any car · *F* to enter';
+  if (ctx.objectiveText !== goal) ctx.objective(goal);
+}
+
 export const CHAPTERS = [
   {
     id: 'homecoming',
     title: 'Homecoming',
     tagline: 'Six years is a long time to be off the road.',
+    showTitleCard: false,
     giverLetter: 'C',
     start: { x: LANDMARKS.safehouse.front.x, z: LANDMARKS.safehouse.front.z + 4 },
     reward: 500,
-    stages: ['Steal a car', 'Drive to Coco Loco Tacos'],
+    stages: ['Get in a car', 'Drive to Coco Loco Tacos'],
     begin(ctx) {
-      ctx.say([
-        { who: 'coco', text: 'Dani! They really let you out. Six years, mija.' },
-        { who: 'dani', text: 'Five years, eleven months. Not that I was counting.' },
-        { who: 'coco', text: 'Borrow some wheels and come see me at the shack on Coral Strand.' },
-      ]);
-      ctx.stage(0, 'Steal a car: walk up to any car and press F');
+      const { player, vehicles } = ctx.game;
+      if (player.vehicle) { driveToCoco(ctx); return; }
+      // On retry, use a car already parked here rather than spawning on top of it.
+      for (const offset of [0, 6, -6]) {
+        const { x } = homeCurb, z = homeCurb.z + offset;
+        let car = vehicles.list.find(v => Math.abs(v.x - x) < 2.2 && Math.abs(v.z - z) < 5);
+        if (car && (car.destroyed || car.driver || car.speed > 0.8)) continue;
+        const spawned = !car;
+        car ??= vehicles.spawn('mirela', x, z, 0, { color: '#35b1af' });
+        const wasPersistent = car.persistent;
+        car.persistent = true;
+        const blip = ctx.track(car, '#ffd23f', 'Borrowed car', { marker: { radius: 2.35, height: 4.5 } });
+        ctx.data.homeCar = { car, blip, spawned, wasPersistent };
+        ctx.onCleanup(() => clearHomeCar(ctx));
+        break;
+      }
+      ctx.say([{ who: 'coco', text: ctx.data.homeCar
+        ? 'I left you wheels at the curb, mija. Come by the shack.'
+        : 'Find some wheels, mija. I’m at the taco shack.' }]);
+      updateHomeCarHint(ctx);
     },
     update(ctx) {
       const p = ctx.game.player;
-      if (ctx.stageIndex === 0 && p.vehicle) {
-        ctx.stage(1, 'Drive to Coco Loco Tacos on the Coral Strand');
-        ctx.waypoint(coco.x, coco.z, { radius: 5, label: 'Coco Loco Tacos' });
+      if (ctx.stageIndex === 0) {
+        if (p.vehicle) driveToCoco(ctx);
+        else {
+          const cue = ctx.data.homeCar;
+          if (cue?.car.destroyed) clearHomeCar(ctx);
+          else if (cue) cue.blip.marker.moveTo(cue.car.x, cue.car.z);
+          updateHomeCarHint(ctx);
+        }
       }
       if (ctx.stageIndex === 1 && ctx.atWaypoint(7)) {
         ctx.pass(500, [

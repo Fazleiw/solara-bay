@@ -64,8 +64,10 @@ export function createSession(game) {
     game.player.revive();
     game.player.human.armor = 0;
     const s = LANDMARKS.safehouse.front;
-    game.player.teleport(s.x - 1, s.z, -Math.PI / 2);
-    game.camera.alignBehind(-Math.PI / 2);
+    const streetHeading = 0.62;
+    game.hud.clearBanners();
+    game.player.teleport(s.x - 2.5, s.z, streetHeading);
+    game.camera.alignBehind(streetHeading);
     game.world.dayNight.setHour(17.2);
     game.collectibles.build();
     game.missions.refreshStartMarker();

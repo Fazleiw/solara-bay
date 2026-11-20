@@ -60,14 +60,17 @@ export function createMissionSystem(game) {
         const p = game.player;
         return Math.hypot(p.x - spot.x, p.z - spot.z) < spot.radius + (p.vehicle ? 1.5 : 0) && p.speed < slowEnough;
       },
-      /** Shows a moving thing (car or person) on the minimap. */
-      track(entity, color = '#ff4040', label = 'Target') {
+      /** Shows a moving thing (car or person) on the minimap, optionally with a world marker. */
+      track(entity, color = '#ff4040', label = 'Target', { marker = null } = {}) {
         const blip = { entity, color, icon: entity.type ? 'car' : 'dot', size: 7, edge: true, label };
+        if (marker) blip.marker = createMarker(game, entity.x, entity.z, color, { ...marker, label });
         game.blips.add(blip);
-        cleanup.push(() => game.blips.delete(blip));
+        cleanup.push(() => ctx.untrack(blip));
         return blip;
       },
-      untrack(blip) { game.blips.delete(blip); },
+      untrack(blip) {
+        if (game.blips.delete(blip)) blip.marker?.remove();
+      },
       timer(seconds) { ctx.timeLeft = seconds; },
       clearTimer() { ctx.timeLeft = null; game.hud.setTimer(null); },
       vehicle(type, x, z, heading, options = {}) {
@@ -119,7 +122,7 @@ export function createMissionSystem(game) {
     const ctx = makeContext(def);
     system.active = ctx;
     game.side?.cancel(false);
-    game.hud.titleCard(`CHAPTER ${def.chapter} · ${def.title}`, def.tagline);
+    if (def.showTitleCard !== false) game.hud.titleCard(`CHAPTER ${def.chapter} · ${def.title}`, def.tagline);
     game.audio?.sfx.missionStart();
     def.begin(ctx);
     game.events.emit('missionStarted', { id: def.id });

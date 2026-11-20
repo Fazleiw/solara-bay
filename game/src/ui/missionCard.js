@@ -49,7 +49,8 @@ export function createMissionCard(game) {
       if (!def) { el.card.classList.add('hidden'); return; }
       el.card.dataset.kind = 'idle';
       setText(el.chapter, `CH ${def.chapter} · ${def.title.toUpperCase()}`);
-      setHtml(el.objective, def.start ? `Meet <em>${def.giverLetter === 'C' ? 'Auntie Coco' : 'Tavo'}</em> at the ${def.giverLetter} marker to start` : 'Coming up next');
+      setHtml(el.objective, def.id === 'homecoming' ? 'Return to the <em>safehouse</em>'
+        : def.start ? `Meet <em>${def.giverLetter === 'C' ? 'Auntie Coco' : 'Tavo'}</em> at the ${def.giverLetter} marker to start` : 'Coming up next');
       segments(def.stages?.length ?? 1, -1);
       setText(el.stageLabel, `${def.stages?.length ?? 1} STAGES`);
       setHtml(el.next, `<b>FREE ROAM</b> side jobs, shops, Sun Medallions`);
