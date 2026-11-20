@@ -10,7 +10,7 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 
 | | | |
 | --- | --- | --- |
-| ![On foot at the wrecked truck, an officer draws](screenshots/2-heist-on-foot.jpg) | ![The four-star escape: Tavo's garage or Coco's door](screenshots/3-escape.jpg) | ![A witness reports the stolen car in Mercado](screenshots/4-witness.jpg) |
+| ![On foot at the wrecked truck, an officer draws](screenshots/2-heist-on-foot.jpg) | ![The four-star escape: Tavo's garage or Coco's door](screenshots/3-escape.jpg) | ![Homecoming: Dani walks up to the marked curb car](screenshots/4-homecoming.jpg) |
 
 ## What's in it
 
@@ -57,7 +57,7 @@ node serve.ts
 Then open http://localhost:8080 in desktop Chrome. Any static file server pointed at `game/` works too: the game needs no build step and makes no network requests.
 
 Developer extras:
-- The four screenshots are frames of real play in Chrome, driven with keyboard and mouse from a chapter-5 campaign save (listed in `shots.json`).
+- The four screenshots are unedited frames of real play in Chrome. The Homecoming frame starts from New Game; the Gold Coast Getaway frames were played from a chapter-5 QA campaign save (see `shots.json`).
 - `?shot=cover|beach|neon|garage&seed=1` stages four posed scenes from the game code, kept as a development aid.
 - `?selftest=1` plays through every system in fast-forward and reports each step, both Gold Coast drops included.
 - `node --test tests/*.test.mjs` checks the chase camera's framing (car placement, field of view, look-ahead, recentre rules).
