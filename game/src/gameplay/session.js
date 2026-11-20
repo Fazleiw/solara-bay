@@ -1,4 +1,4 @@
-// The play session: progress state (cash, story, medallions, respect, personal car, stats), new game and continue,
+// The play session: progress state (cash, story, story choices, medallions, respect, personal car, stats), new game and continue,
 // saving to localStorage, the WASTED and BUSTED sequences with their hospital and police
 // station respawns, and the running statistics.
 import { loadGame, saveGame } from '../core/save.js';
@@ -9,6 +9,7 @@ export function freshState() {
   return {
     cash: 350,
     storyProgress: 0,
+    choices: {},
     medallions: [],
     respect: 0,
     personalCar: null,
@@ -30,6 +31,7 @@ export function createSession(game) {
     return {
       cash: game.state.cash,
       storyProgress: game.state.storyProgress,
+      choices: game.state.choices,
       medallions: game.state.medallions,
       respect: game.state.respect,
       personalCar: game.state.personalCar,
@@ -74,7 +76,7 @@ export function createSession(game) {
     const data = loadGame();
     if (!data) { session.newGame(); return; }
     resetWorldState();
-    game.state = { ...freshState(), cash: data.cash, storyProgress: data.storyProgress, medallions: data.medallions ?? [], respect: data.respect ?? 0, personalCar: data.personalCar ?? null, stats: { ...freshState().stats, ...(data.stats ?? {}) } };
+    game.state = { ...freshState(), cash: data.cash, storyProgress: data.storyProgress, choices: data.choices ?? {}, medallions: data.medallions ?? [], respect: data.respect ?? 0, personalCar: data.personalCar ?? null, stats: { ...freshState().stats, ...(data.stats ?? {}) } };
     const inv = createInventory();
     for (const [id, ammo] of Object.entries(data.weapons ?? {})) if (WEAPONS[id]) giveWeapon(inv, id, ammo);
     game.player.inventory = inv;

@@ -7,7 +7,8 @@
 //   3 Heat Wave           the garage is raided: lose a three-star wanted level
 //   4 Velvet Static       a night shootout with the Velvet Knives in Deco Row, boss Mara Velasco
 //   5 Tail Lights         chase and wreck the Saltjaw courier, recover the ledger
-//   6 Gold Coast Getaway  hit an armored truck on the Promenade, outrun a four-star response
+//   6 Gold Coast Getaway  hit an armored truck on the Promenade, outrun a four-star response to
+//                         Tavo's garage, or slip into Coco's shack unseen for a smaller cut
 //   7 Ironwake Reckoning  take out the Saltjaw Crew at their dockside yard
 //   8 Sunset Run          race the Vantor across the Causeway Bridge to stop Pike at Gull Key
 import { giveWeapon } from '../combat/weapons.js';
@@ -20,10 +21,54 @@ const showroom = LANDMARKS.showroom;
 const yard = LANDMARKS.warehouse;
 const lighthouse = LANDMARKS.lighthouse;
 const garageBay = { x: tavo.x, z: tavo.z - 13 };
+/** Coco's side door on Ocean Promenade, a block from the armored truck's route. */
+const COCO_DROP = { x: lineCoord(9) + 3.5, z: coco.z - 10 };
 /** The Neon Palms corner in Deco Row where the Velvet Knives hold court. */
 export const NEON_PALMS = { x: lineCoord(6) + 18, z: lineCoord(7) - 8 };
 /** The armored truck's run down Ocean Promenade. */
 const TRUCK_START = { x: lineCoord(9) - 3.5, z: lineCoord(3) + 10 };
+
+const ESCAPE_OBJECTIVE = "Outrun the heat to Tavo's garage, or lose sight of the cops and slip into Coco's";
+
+/**
+ * Gold Coast Getaway's escape: two drops. Tavo's garage takes Dani in with the cruisers on the
+ * bumper; Coco's side door is a block from the heist but only opens once no unit can see Dani,
+ * and Coco keeps a cut. The GPS follows whichever drop is nearer, and the objective line says
+ * what Coco is waiting for.
+ */
+function updateEscape(ctx) {
+  const g = ctx.game;
+  const p = g.player;
+  ctx.data.cocoDrop ??= ctx.spot(COCO_DROP.x, COCO_DROP.z, { radius: 4.5, color: '#ffb347', label: "Coco's side door" });
+  ctx.data.gpsTo ??= 'tavo';
+  const drop = ctx.data.cocoDrop;
+  const toCoco = Math.hypot(p.x - drop.x, p.z - drop.z);
+  const toTavo = Math.hypot(p.x - garageBay.x, p.z - garageBay.z);
+  const nearer = toCoco < toTavo ? 'coco' : 'tavo';
+  if (nearer !== ctx.data.gpsTo) {
+    ctx.data.gpsTo = nearer;
+    if (nearer === 'coco') g.gps.setTarget(drop.x, drop.z, '#ffb347');
+    else g.gps.setTarget(garageBay.x, garageBay.z, '#3ef2ff');
+  }
+  const seen = g.wanted.state.seen && g.wanted.level > 0;
+  if (toCoco < 45) ctx.objective(seen ? "Coco won't open with cops in sight: break line of sight" : "Out of sight: pull up at Coco's side door, now");
+  else ctx.objective(ESCAPE_OBJECTIVE);
+  if (ctx.atWaypoint(12) && p.vehicle) {
+    // Driving into Tavo's bay with the heat on: the door rolls down behind Dani.
+    finishEscape(ctx, 'tavo', "Drop the cash at Tavo's garage");
+  } else if (!seen && ctx.atSpot(drop, 8)) {
+    finishEscape(ctx, 'coco', 'Hand the case to Coco');
+  }
+}
+
+function finishEscape(ctx, drop, objective) {
+  const g = ctx.game;
+  g.wanted.clear();
+  g.police.reset();
+  ctx.clearTimer();
+  ctx.data.drop = drop;
+  ctx.stage(3, objective);
+}
 
 export const CHAPTERS = [
   {
@@ -258,7 +303,7 @@ export const CHAPTERS = [
     giverLetter: 'T',
     start: { x: tavo.front.x, z: tavo.front.z },
     reward: 6000,
-    stages: ['Hit the Solmark armored truck', 'Grab the cash case', 'Outrun the Bay Police', "Drop the cash at Tavo's garage"],
+    stages: ['Hit the Solmark armored truck', 'Grab the cash case', 'Outrun the Bay Police', "Stash the cash at Tavo's or Coco's"],
     begin(ctx) {
       const g = ctx.game;
       ctx.say([
@@ -294,16 +339,18 @@ export const CHAPTERS = [
           { who: 'juno', text: "Case is ours. Now drive like you mean it, Dani!" },
         ]);
         ctx.timer(180);
-        ctx.stage(2, "Outrun the four-star response and reach Tavo's garage");
+        ctx.stage(2, ESCAPE_OBJECTIVE);
+        ctx.say([{ who: 'juno', text: "Tavo shuts his door on anyone. Coco's shack is closer, but she won't open with cops watching, and she takes a cut." }]);
         ctx.waypoint(garageBay.x, garageBay.z, { radius: 4.5, color: '#3ef2ff', label: "Tavo's garage" });
-      } else if (ctx.stageIndex === 2 && ctx.atWaypoint(12) && g.player.vehicle) {
-        // Driving into Tavo's bay with the heat on: the door rolls down behind Dani.
-        g.wanted.clear();
-        g.police.reset();
-        ctx.clearTimer();
-        ctx.stage(3, "Drop the cash at Tavo's garage");
+      } else if (ctx.stageIndex === 2) {
+        updateEscape(ctx);
       } else if (ctx.stageIndex === 3) {
-        ctx.pass(6000, [
+        const viaCoco = ctx.data.drop === 'coco';
+        g.state.choices = { ...g.state.choices, goldcoastDrop: ctx.data.drop };
+        ctx.pass(viaCoco ? 4500 : 6000, viaCoco ? [
+          { who: 'coco', text: "In the cool room, under the carnitas. Nobody saw a thing, mija. My cut's already counted." },
+          { who: 'juno', text: "Pike's money, gone without a trace. He won't even know who to blame." },
+        ] : [
           { who: 'juno', text: "Forty grand of Pike's money. He'll feel that tonight." },
           { who: 'tavo', text: "Now he can't pay his crew. Time to visit Ironwake, Dani." },
         ]);
@@ -320,7 +367,11 @@ export const CHAPTERS = [
     stages: ['Gear up', 'Reach the Saltjaw yard', 'Take out the Saltjaw Crew'],
     begin(ctx) {
       const g = ctx.game;
+      const quiet = g.state.choices?.goldcoastDrop === 'coco';
       ctx.say([
+        quiet
+          ? { who: 'tavo', text: "Coco says you came in quiet. Pike's people still don't know who took the payroll." }
+          : { who: 'tavo', text: "Pike's people saw my door roll down behind you. They know who took the payroll." },
         { who: 'tavo', text: 'The ledger says Pike is holed up at the Saltjaw yard, Ironwake Docks.' },
         { who: 'tavo', text: "There's a Rattler SMG and a vest on the bench. Take them. Make some noise." },
         { who: 'dani', text: 'Six years of noise.' },

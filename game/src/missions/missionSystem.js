@@ -47,6 +47,19 @@ export function createMissionSystem(game) {
         const p = game.player;
         return Math.hypot(p.x - w.x, p.z - w.z) < w.radius + (p.vehicle ? 1.5 : 0) && p.speed < slowEnough;
       },
+      /** A second destination beside the waypoint (a choice of drops): marker and blip, no GPS, gone at cleanup. */
+      spot(x, z, { radius = 4.5, color = '#ffb347', label = 'Destination' } = {}) {
+        const marker = createMarker(game, x, z, color, { radius, height: 12, label });
+        const blip = { x, z, color, icon: 'dot', size: 7, edge: true, label };
+        game.blips.add(blip);
+        cleanup.push(() => { marker.remove(); game.blips.delete(blip); });
+        return { x, z, radius };
+      },
+      /** Whether the player is inside a spot from ctx.spot (in a car counts a little wider), below `slowEnough` m/s. */
+      atSpot(spot, slowEnough = 99) {
+        const p = game.player;
+        return Math.hypot(p.x - spot.x, p.z - spot.z) < spot.radius + (p.vehicle ? 1.5 : 0) && p.speed < slowEnough;
+      },
       /** Shows a moving thing (car or person) on the minimap. */
       track(entity, color = '#ff4040', label = 'Target') {
         const blip = { entity, color, icon: entity.type ? 'car' : 'dot', size: 7, edge: true, label };

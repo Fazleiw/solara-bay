@@ -1,9 +1,9 @@
 // ?selftest=1: a scripted play-through of every system in fast-forward (new game, carjacking and
 // the witness call, driving and drifting, the radio, gunfire, the wanted level, the police
-// dispatch roster, GULL ONE and roadblocks, busted, wasted, all eight story chapters, both side
-// jobs, respect ranks, the gun store, the garage upgrades, the menus, wet night roads and
-// save/continue). Each step reports pass or the error it threw, so a headless browser can
-// check the whole game in one load.
+// dispatch roster, GULL ONE and roadblocks, busted, wasted, all eight story chapters, both
+// Gold Coast Getaway drops, both side jobs, respect ranks, the gun store, the garage upgrades,
+// the menus, wet night roads and save/continue). Each step reports pass or the error it threw,
+// so a headless browser can check the whole game in one load.
 import { STEP } from '../config.js';
 import { giveWeapon } from '../combat/weapons.js';
 import { CHAPTERS } from '../missions/chapters.js';
@@ -112,6 +112,47 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
       run(0.5);
     });
   }
+  // Gold Coast Getaway's two drops: wreck the truck, grab the case, then stash it either way.
+  const escapeTo = (drop) => {
+    game.wanted.clear();
+    game.police.reset();
+    const index = CHAPTERS.findIndex((c) => c.id === 'goldcoast');
+    game.state.storyProgress = index;
+    const ctx = game.missions.startById('goldcoast');
+    const truck = ctx.data.truck;
+    truck.damage(truck.maxHealth * 0.85, 'player');
+    run(0.2);
+    if (ctx.stageIndex !== 1) throw new Error(`truck wrecked but stage ${ctx.stageIndex}`);
+    if (p.vehicle) p.exitVehicle(true);
+    p.teleport(ctx.current.x, ctx.current.z);
+    run(0.2);
+    if (ctx.stageIndex !== 2 || game.wanted.level !== 4) throw new Error(`case grabbed but stage ${ctx.stageIndex}, ${game.wanted.level} stars`);
+    run(0.2);
+    const spot = drop === 'coco' ? ctx.data.cocoDrop : ctx.current;
+    const car = game.vehicles.spawn('vantor', spot.x, spot.z - 9, 0);
+    p.teleport(car.x - 2, car.z);
+    p.enterVehicle(car);
+    // A cruiser right beside Dani: Coco keeps her door shut, Tavo still takes the car in.
+    const unit = game.police.spawnUnitAt(car.x + 5, car.z, 0);
+    car.x = spot.x; car.z = spot.z; car.vx = car.vz = 0;
+    run(0.3);
+    if (drop === 'coco') {
+      if (ctx.stageIndex !== 2) throw new Error('Coco opened with a cruiser watching');
+      if (!/break line of sight/.test(ctx.objectiveText)) throw new Error(`objective "${ctx.objectiveText}"`);
+      game.police.reset();
+      game.vehicles.remove(unit.car);
+      run(0.5);
+    }
+    run(0.3);
+    if (game.missions.active) throw new Error(`still on stage ${ctx.stageIndex}: ${ctx.objectiveText}`);
+    if (game.state.choices.goldcoastDrop !== drop) throw new Error(`choice saved as ${game.state.choices.goldcoastDrop}`);
+    if (game.state.storyProgress !== index + 1) throw new Error(`story progress ${game.state.storyProgress}`);
+    if (p.vehicle) p.exitVehicle(true);
+    run(0.5);
+  };
+  const tryEscape = (drop) => { try { escapeTo(drop); } finally { game.missions.abort(); } };
+  step("gold coast: Tavo's garage under fire", () => tryEscape('tavo'));
+  step("gold coast: Coco's door only when unseen", () => tryEscape('coco'));
   step('taxi fares', () => {
     const cab = game.vehicles.spawn('solcab', p.x + 4, p.z, 0);
     p.enterVehicle(cab);
