@@ -38,7 +38,9 @@ function buildBody(b, lights, type, paint) {
   };
   switch (type.body) {
     case 'sports': {
-      b.box(0, 0.28, 0, W, 0.45, L, paint);
+      const shoulderPaint = new THREE.Color(paint).offsetHSL(0, 0.02, 0.08);
+      b.box(0, 0.28, 0, W, 0.28, L, paint);
+      b.taperedBox(0, 0.56, 0, W, 0.17, L, W * 0.9, L * 0.94, shoulderPaint);
       b.taperedBox(0, 0.73, -0.25, W * 0.86, 0.42, L * 0.42, W * 0.7, L * 0.22, GLASS, -0.1);
       b.box(0, 1.14, -0.33, W * 0.68, 0.04, L * 0.2, paint);
       for (const s of [-1, 1]) b.taperedBox(s * W * 0.385, 0.73, -0.28, 0.07, 0.42, 0.14, 0.06, 0.1, paint);
@@ -47,8 +49,14 @@ function buildBody(b, lights, type, paint) {
       for (const s of [-1, 1]) b.box(s * W * 0.38, 0.73, -half + 0.3, 0.08, 0.22, 0.08, TRIM);
       b.box(0, 0.2, half - 0.1, W * 0.9, 0.2, 0.25, TRIM);
       b.box(0, 0.2, -half + 0.1, W * 0.9, 0.2, 0.25, TRIM);
+      b.box(0, 0.19, -half + 0.015, W * 0.72, 0.1, 0.07, '#111418');
+      for (const s of [-1, 0, 1]) b.box(s * W * 0.22, 0.19, -half + 0.1, 0.045, 0.13, 0.2, '#111418');
       for (const s of [-1, 1]) b.box(s * (W / 2 + 0.01), 0.38, 0, 0.04, 0.12, L * 0.5, TRIM);
-      addLights(0.58, 0.32);
+      for (const s of [-1, 1]) {
+        lights.box(s * (W / 2 - 0.32), 0.58, half - 0.02, 0.42, 0.14, 0.06, headlight);
+        lights.box(s * (W / 2 - 0.3), 0.58, -half + 0.02, 0.34, 0.12, 0.06, taillight);
+        lights.box(s * (W / 2 - 0.57), 0.6, -half + 0.015, 0.16, 0.07, 0.07, '#ff7068');
+      }
       break;
     }
     case 'pickup': {
