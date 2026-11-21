@@ -16,3 +16,10 @@ export const STREET_RACE = {
     { x: lineCoord(5), z: lineCoord(8) - 3.5, label: 'Lumen finish' },
   ],
 };
+
+export function formatRaceTime(seconds) {
+  const tenths = Math.max(0, Math.round(seconds * 10));
+  const minutes = Math.floor(tenths / 600);
+  const remainder = tenths % 600;
+  return `${minutes}:${String(Math.floor(remainder / 10)).padStart(2, '0')}.${remainder % 10}`;
+}

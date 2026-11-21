@@ -2,6 +2,7 @@
 // the story intro, the pause menu with its city map, brief, settings and controls tabs, the
 // Bayside Arms shop, and the ending card.
 import { saveSettings } from '../core/save.js';
+import { formatRaceTime } from '../missions/streetRace.js';
 import { CAST, STORY_INTRO } from '../missions/cast.js';
 import { CHAPTERS } from '../missions/chapters.js';
 import { MEDALLIONS } from '../missions/collectibles.js';
@@ -115,6 +116,7 @@ export function createMenus(game, mapCanvas, handlers) {
         <div>Story chapters: ${s.storyProgress} / ${CHAPTERS.length}</div>
         <div>Sun Medallions: ${s.medallions.length} / ${MEDALLIONS.length}</div>
         <div>Taxi fares: ${st.taxiFares} · Taco runs: ${st.tacoRuns} · Street sprints: ${st.streetRaces ?? 0}</div>
+        <div>Promenade Sprint best: ${st.bestStreetRaceTime == null ? '--:--.-' : formatRaceTime(st.bestStreetRaceTime)}</div>
         <div>Cars stolen: ${st.carsStolen} · Takedowns: ${st.kills}</div>
         <div>Times wasted: ${st.wasted} · Busted: ${st.busted}</div>
         <div>Distance driven: ${(st.distance / 1000).toFixed(1)} km</div></section>

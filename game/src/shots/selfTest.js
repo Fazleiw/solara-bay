@@ -6,6 +6,8 @@
 // so a headless browser can check the whole game in one load.
 import { STEP } from '../config.js';
 import { giveWeapon } from '../combat/weapons.js';
+import { deleteSave, loadGame, saveGame } from '../core/save.js';
+import { hydrateState } from '../gameplay/session.js';
 import { CHAPTERS } from '../missions/chapters.js';
 import { isOnBlock, isWalkable, LANDMARKS } from '../world/cityLayout.js';
 
@@ -237,6 +239,50 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     p.exitVehicle(true);
     run(0.1);
     if (game.side.active || game.gps.state.target) throw new Error('vehicle exit did not clear the race and GPS');
+  });
+  step('street race personal best and aborted-run persistence', () => {
+    game.state.stats.bestStreetRaceTime = null;
+    const race = game.side.race;
+    const car = game.vehicles.spawn('vantor', race.start.x, race.start.z, race.start.heading);
+    p.enterVehicle(car);
+    const completeIn = (seconds) => {
+      car.x = race.start.x; car.z = race.start.z; car.vx = car.vz = 0;
+      run(0.1, [], ['KeyE']);
+      if (game.side.active?.kind !== 'race') throw new Error('focused sprint did not start');
+      for (let i = 0; i < race.checkpoints.length; i += 1) {
+        const point = race.checkpoints[i];
+        if (i === race.checkpoints.length - 1) game.side.active.time = race.time - seconds + STEP;
+        car.x = point.x; car.z = point.z; car.vx = car.vz = 0;
+        run(0.1);
+      }
+    };
+
+    const cash = game.state.cash;
+    completeIn(20);
+    if (Math.abs(game.state.stats.bestStreetRaceTime - 20) > 0.001) throw new Error(`first best was ${game.state.stats.bestStreetRaceTime}`);
+    if (!document.getElementById('hud-big-sub').textContent.includes('0:20.0 · PERSONAL BEST')) throw new Error('first finish did not show time and PB status');
+    completeIn(18.5);
+    if (Math.abs(game.state.stats.bestStreetRaceTime - 18.5) > 0.001) throw new Error(`faster best was ${game.state.stats.bestStreetRaceTime}`);
+    completeIn(24);
+    if (Math.abs(game.state.stats.bestStreetRaceTime - 18.5) > 0.001) throw new Error('slower finish replaced the best');
+    if (!document.getElementById('hud-big-sub').textContent.includes('0:24.0 · BEST 0:18.5')) throw new Error('slower finish did not show result and saved best');
+    if (game.state.cash !== cash + race.reward * 3) throw new Error('focused finishes changed the $900 payout');
+
+    car.x = race.start.x; car.z = race.start.z;
+    run(0.1, [], ['KeyE']);
+    p.exitVehicle(true);
+    run(0.1);
+    if (game.side.active || Math.abs(game.state.stats.bestStreetRaceTime - 18.5) > 0.001) throw new Error('aborted run changed the saved best');
+  });
+  step('street race best save compatibility', () => {
+    const oldSave = hydrateState({ cash: 350, storyProgress: 0, stats: { streetRaces: 2 } });
+    if (oldSave.stats.bestStreetRaceTime !== null || oldSave.stats.streetRaces !== 2) throw new Error('pre-best save did not hydrate compatibly');
+    const currentSave = hydrateState({ cash: 350, storyProgress: 0, stats: { streetRaces: 3, bestStreetRaceTime: 18.5 } });
+    if (currentSave.stats.bestStreetRaceTime !== 18.5) throw new Error('saved sprint best did not hydrate');
+    saveGame({ cash: 350, storyProgress: 0, stats: currentSave.stats });
+    const reloaded = hydrateState(loadGame());
+    deleteSave();
+    if (reloaded.stats.bestStreetRaceTime !== 18.5) throw new Error('sprint best did not persist through normal save storage');
   });
   step('respect ranks', () => {
     game.state.respect = 0;

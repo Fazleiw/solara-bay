@@ -1,6 +1,7 @@
 // The HUD mission card, top left: "CH 6 · GOLD COAST GETAWAY", the objective sentence, the
 // countdown, the target's health (a boss, a van), STAGE 3/4 progress segments and the NEXT
 // step. Between chapters it shows the running side job, or where the next chapter starts.
+import { formatRaceTime } from '../missions/streetRace.js';
 
 const $ = (id) => document.getElementById(id);
 const esc = (t) => t.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -45,7 +46,10 @@ export function createMissionCard(game) {
       const current = side.kind === 'taxi' ? (side.step === 'pickup' ? 0 : 1) : side.kind === 'race' ? side.checkpoint : side.drops ?? 0;
       segments(count, current);
       setText(el.stageLabel, side.kind === 'taxi' ? (side.step === 'pickup' ? 'PICK UP' : 'DROP OFF') : side.kind === 'race' ? 'CHECKPOINTS' : 'DELIVERIES');
-      setHtml(el.next, side.kind === 'race' ? `<b>PAYOUT</b> $${game.side.race.reward.toLocaleString('en-US')}` : `<b>EARNED</b> $${(side.earned ?? 0).toLocaleString('en-US')}`);
+      if (side.kind === 'race') {
+        const best = game.state.stats.bestStreetRaceTime;
+        setHtml(el.next, `<b>BEST</b> ${best == null ? '--:--.-' : formatRaceTime(best)} · <b>PAYOUT</b> $${game.side.race.reward.toLocaleString('en-US')}`);
+      } else setHtml(el.next, `<b>EARNED</b> $${(side.earned ?? 0).toLocaleString('en-US')}`);
     } else {
       const def = game.missions.nextStory();
       if (!def) { el.card.classList.add('hidden'); return; }
@@ -58,8 +62,11 @@ export function createMissionCard(game) {
     }
     el.timer.classList.toggle('hidden', state.timer == null);
     if (state.timer != null) {
-      const m = Math.floor(state.timer / 60), s = Math.floor(state.timer % 60);
-      setText(el.timer, `${m}:${String(s).padStart(2, '0')}`);
+      if (side?.kind === 'race') setText(el.timer, formatRaceTime(state.timer));
+      else {
+        const m = Math.floor(state.timer / 60), s = Math.floor(state.timer % 60);
+        setText(el.timer, `${m}:${String(s).padStart(2, '0')}`);
+      }
       el.timer.classList.toggle('low', state.timer < 10);
     }
   }

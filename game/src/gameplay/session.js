@@ -13,7 +13,20 @@ export function freshState() {
     medallions: [],
     respect: 0,
     personalCar: null,
-    stats: { missionsPassed: 0, kills: 0, carsStolen: 0, wasted: 0, busted: 0, distance: 0, taxiFares: 0, tacoRuns: 0, streetRaces: 0 },
+    stats: { missionsPassed: 0, kills: 0, carsStolen: 0, wasted: 0, busted: 0, distance: 0, taxiFares: 0, tacoRuns: 0, streetRaces: 0, bestStreetRaceTime: null },
+  };
+}
+
+export function hydrateState(data) {
+  return {
+    ...freshState(),
+    cash: data.cash,
+    storyProgress: data.storyProgress,
+    choices: data.choices ?? {},
+    medallions: data.medallions ?? [],
+    respect: data.respect ?? 0,
+    personalCar: data.personalCar ?? null,
+    stats: { ...freshState().stats, ...(data.stats ?? {}) },
   };
 }
 
@@ -76,7 +89,7 @@ export function createSession(game) {
     const data = loadGame();
     if (!data) { session.newGame(); return; }
     resetWorldState();
-    game.state = { ...freshState(), cash: data.cash, storyProgress: data.storyProgress, choices: data.choices ?? {}, medallions: data.medallions ?? [], respect: data.respect ?? 0, personalCar: data.personalCar ?? null, stats: { ...freshState().stats, ...(data.stats ?? {}) } };
+    game.state = hydrateState(data);
     const inv = createInventory();
     for (const [id, ammo] of Object.entries(data.weapons ?? {})) if (WEAPONS[id]) giveWeapon(inv, id, ammo);
     game.player.inventory = inv;

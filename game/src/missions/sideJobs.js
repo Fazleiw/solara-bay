@@ -7,7 +7,7 @@
 import { rng } from '../core/random.js';
 import { createMarker } from '../gameplay/markers.js';
 import { LANDMARKS } from '../world/cityLayout.js';
-import { STREET_RACE } from './streetRace.js';
+import { formatRaceTime, STREET_RACE } from './streetRace.js';
 
 export function createSideJobs(game) {
   const net = game.world.network;
@@ -101,11 +101,16 @@ export function createSideJobs(game) {
   function finishRace() {
     if (!job || job.kind !== 'race') return;
     const reward = STREET_RACE.reward;
+    const elapsed = STREET_RACE.time - job.time;
+    const previousBest = game.state.stats.bestStreetRaceTime;
+    const personalBest = previousBest == null || elapsed < previousBest;
+    if (personalBest) game.state.stats.bestStreetRaceTime = elapsed;
     cancel(false);
     game.state.stats.streetRaces = (game.state.stats.streetRaces ?? 0) + 1;
     game.addCash(reward);
     game.events.emit('sideJobPaid', { kind: 'race', amount: reward });
-    game.hud.bigMessage('SPRINT COMPLETE', `${STREET_RACE.title} · $${reward.toLocaleString()}`, STREET_RACE.color);
+    const result = personalBest ? `${formatRaceTime(elapsed)} · PERSONAL BEST` : `${formatRaceTime(elapsed)} · BEST ${formatRaceTime(previousBest)}`;
+    game.hud.bigMessage('SPRINT COMPLETE', `${result} · $${reward.toLocaleString()}`, STREET_RACE.color);
     game.audio?.sfx.missionPassed();
     game.autosave();
   }

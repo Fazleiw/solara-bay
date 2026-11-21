@@ -114,7 +114,7 @@ const SCENES = {
     units[0].ramming = true;
     // A close chase camera that keeps Dani's car dominant while the police pack and route read clearly.
     const lead = game.player.vehicle ?? car;
-    game.camera.setPose(lead.x - 14, 4.1, lead.z - 4, lead.x + 20, 2, lead.z + 1.4, 57);
+    game.camera.setPose(lead.x - 16, 4.4, lead.z - 4, lead.x + 20, 2, lead.z + 1.4, 59);
     clearLens(game);
   },
 
