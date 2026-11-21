@@ -53,6 +53,10 @@ export function createHud(game, mapCanvas) {
   function updateWanted() {
     const w = game.wanted;
     const level = w.level;
+    // Pursuits need a driving HUD, not the full free-roam dashboard. CSS keeps the
+    // objective, heat, minimap and survival information dominant while collapsing
+    // secondary cards. This is runtime state, so staged shots and normal play match.
+    el.root.classList.toggle('pursuit', level > 0);
     starEls.forEach((s, i) => s.classList.toggle('on', i < level));
     el.stars.classList.toggle('flash', w.evading);
     show(el.wantedTag, level > 0);

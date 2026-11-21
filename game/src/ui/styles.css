@@ -195,6 +195,36 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d16; fon
 #letterbox.on::before, #letterbox.on::after { height: 9vh; }
 #hud-fps { position: absolute; left: 8px; top: 4px; font: 12px monospace; opacity: 0.7; }
 
+/* Active pursuit: retain only information that helps the next driving/combat decision.
+   The same state is used in ordinary play and deterministic screenshot scenes. */
+#hud.pursuit #hud-cash,
+#hud.pursuit #hud-daypart,
+#hud.pursuit #hud-radio,
+#hud.pursuit #hud-district,
+#hud.pursuit #hud-crew,
+#hud.pursuit #hud-respect,
+#hud.pursuit #hud-mission-next { display: none !important; }
+#hud.pursuit #hud-topleft { width: 354px; gap: 6px; }
+#hud.pursuit #hud-mission { padding: 9px 13px 8px 12px; background: linear-gradient(160deg, rgba(14,16,34,0.92), rgba(8,9,22,0.82)); }
+#hud.pursuit #hud-objective { margin: 5px 0 7px; font-size: 19px; }
+#hud.pursuit #hud-dispatch { padding: 6px 11px 5px 10px; }
+#hud.pursuit #hud-dispatch-rows,
+#hud.pursuit #hud-dispatch-more { display: none; }
+#hud.pursuit #hud-topright { gap: 0; }
+#hud.pursuit #hud-clock { font-size: 18px; opacity: 0.75; }
+#hud.pursuit #hud-stars { height: 48px; }
+#hud.pursuit #hud-stars span { font-size: 48px; line-height: 48px; }
+#hud.pursuit #hud-wanted-tag { font-size: 15px; padding: 4px 10px; margin-top: 2px; }
+#hud.pursuit #hud-weapons .wslot:not(.selected) { display: none; }
+#hud.pursuit #hud-weapons .wslot.selected { width: 86px; height: 56px; }
+#hud.pursuit #hud-minimap-wrap { width: 230px; height: 230px; }
+#hud.pursuit #hud-minimap { width: 222px; height: 222px; }
+#hud.pursuit #hud-status { width: 180px; }
+#hud.pursuit #hud-bottomright { width: 248px; }
+#hud.pursuit #hud-vehicle { padding: 7px 11px 6px 10px; }
+#hud.pursuit #hud-vehicle .condition { display: none; }
+#hud.pursuit #hud-speed { font-size: 46px; }
+
 /* ---------- Screens ---------- */
 .screen { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
 #screen-title { background: linear-gradient(90deg, rgba(10,6,30,0.85) 0%, rgba(10,6,30,0.35) 45%, transparent 70%); justify-content: flex-start; padding-left: 7vw; }

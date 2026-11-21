@@ -8,7 +8,8 @@
 // upgrades, the HUD and minimap, HDR bloom with wet night roads, and procedural radio and sound.
 // three.js is vendored as game/vendor/three.module.min.js.
 //
-// This program hands it in: it copies game/ and screenshots/ (4 JPEGs from real play, 1-cover.jpg first, as shots.json lists them) from
+// This program hands it in: it copies game/ and screenshots/ (four playable Chrome captures,
+// ordered as shots.json lists them) from
 // beside this file to /output and writes /output/dossier.json, the summary the judge reads,
 // with the vendored make.fun library.
 //

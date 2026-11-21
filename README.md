@@ -6,11 +6,11 @@
 
 Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is out, the bay still glows gold at sunset, and Gideon Pike, the man who sold Dani out, runs the waterfront. Auntie Coco has work, Tavo has wheels, Juno can open any safe, and Mara Velasco's Velvet Knives own the neon of Deco Row.
 
-![Gold Coast Getaway: tailing the armored truck down Ocean Promenade at five stars](screenshots/1-cover.jpg)
+![Gold Coast Getaway: a four-star sunset escape closes on a police roadblock](screenshots/1-active-chase.jpg)
 
 | | | |
 | --- | --- | --- |
-| ![On foot at the wrecked truck, an officer draws](screenshots/2-heist-on-foot.jpg) | ![The four-star escape: Tavo's garage or Coco's door](screenshots/3-escape.jpg) | ![A witness reports the stolen car in Mercado](screenshots/4-witness.jpg) |
+| ![Close on-foot combat under Deco Row's rain-slick neon](screenshots/2-neon-action.jpg) | ![A witness reports the stolen car beside the beach and Sol Wheel](screenshots/3-beach-witness.jpg) | ![Engine, armour and brake progression at Tavo's garage](screenshots/4-garage-progression.jpg) |
 
 ## What's in it
 
@@ -23,7 +23,7 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 - **Story.** Eight chapters with stages, timers and voiced-style dialogue with painted portraits: *Homecoming*, *Showroom Special*, *Heat Wave*, *Velvet Static* (a neon night shootout with the Velvet Knives and their boss), *Tail Lights*, *Gold Coast Getaway* (an armored-truck heist and a four-star escape that ends at Tavo's garage, which takes Dani in under fire, or at Coco's side door a block away, which only opens once no unit can see Dani and costs a cut; Tavo remembers which), *Ironwake Reckoning* and *Sunset Run*.
 - **Progression.** Respect from chapters, side jobs, carjackings, escapes and crew fights climbs six ranks, from Fresh Out to Golden Coast Legend, unlocking guns at Bayside Arms and upgrade tiers at Tavo's Chrome & Paint: repairs, a respray that loses the heat, engine tunes, armour plating and race brakes, each previewed on stat bars. An upgraded car becomes Dani's own and is saved.
 - **Side activities.** Solcab taxi fares, Coco's Taco Run deliveries, 25 hidden Sun Medallions, rival crew turf, the safehouse save point and pickups around the city.
-- **HUD.** A mission card with chapter, timer, objective, STAGE n/m and what is NEXT; the police-response panel; cash, clock and wanted stars with IN SIGHT / SEARCH ZONE; a five-slot weapon bar with ammo and respect locks; a rotating minimap with GPS route, blips and the police search circle; the district pill; health, armour and respect bars; a radio card with song and artist; a vehicle card with condition, speed and gear; toasts and dialogue.
+- **HUD.** A mission card with chapter, timer, objective, STAGE n/m and what is NEXT; the police-response panel; cash, clock and wanted stars with IN SIGHT / SEARCH ZONE; a five-slot weapon bar with ammo and respect locks; a rotating minimap with GPS route, blips and the police search circle; the district pill; health, armour and respect bars; a radio card with song and artist; a vehicle card with condition, speed and gear; toasts and dialogue. When a pursuit starts, secondary free-roam details collapse so the objective, heat, minimap and survival information stay readable at speed.
 - **Menus and saves.** A title screen with a story intro, and a pause menu with the city map (click to set a waypoint), the chapter brief and stats, settings and controls. Progress saves to localStorage.
 - **Sound.** Four procedural radio stations with original song titles (Sunwave 101.7, Bayside Bass 94.3, Radio Tropicana 88.9, Low Tide 106.1), plus engines, sirens, the helicopter, surf, gunfire, crashes and explosions, all synthesised with Web Audio.
 
@@ -57,7 +57,7 @@ node serve.ts
 Then open http://localhost:8080 in desktop Chrome. Any static file server pointed at `game/` works too: the game needs no build step and makes no network requests.
 
 Developer extras:
-- The four screenshots are frames of real play in Chrome, driven with keyboard and mouse from a chapter-5 campaign save (listed in `shots.json`).
+- The four screenshots are unedited 1280 × 800 playable Chrome captures of the deterministic scenes listed in `shots.json`.
 - `?shot=cover|beach|neon|garage&seed=1` stages four posed scenes from the game code, kept as a development aid.
 - `?selftest=1` plays through every system in fast-forward and reports each step, both Gold Coast drops included.
 - `node --test tests/*.test.mjs` checks the chase camera's framing (car placement, field of view, look-ahead, recentre rules).

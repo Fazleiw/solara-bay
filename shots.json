@@ -1,6 +1,6 @@
 [
-  { "name": "1-cover.jpg", "scene": "Gold Coast Getaway, stage 1: tailing the Solmark armored truck down Ocean Promenade with the Rattler, five stars, GULL ONE and roadblocks called in", "captured": "real play in Chrome with keyboard and mouse" },
-  { "name": "2-heist-on-foot.jpg", "scene": "On foot at the wrecked truck: the case is grabbed, an officer draws on Dani, the escape choice comes up", "captured": "real play in Chrome with keyboard and mouse" },
-  { "name": "3-escape.jpg", "scene": "The four-star escape on the beachfront: cruisers box the Vantor in while Juno lays out Tavo's garage or Coco's door", "captured": "real play in Chrome with keyboard and mouse" },
-  { "name": "4-witness.jpg", "scene": "Free roam in Mercado at golden hour: a witness reports the stolen sedan and PELICAN-47 comes head-on", "captured": "real play in Chrome with keyboard and mouse" }
+  { "name": "1-active-chase.jpg", "scene": "Gold Coast Getaway at sunset: Dani drives the four-star escape toward a roadblock with three cruisers closing, GULL ONE overhead and Juno warning about the spike strips", "captured": "unedited 1280x800 playable Chrome capture from ?shot=cover&seed=1" },
+  { "name": "2-neon-action.jpg", "scene": "Velvet Static at night: Dani fires the Rattler at the Velvet Knives in close on-foot combat across Deco Row's rain-slick neon street", "captured": "unedited 1280x800 playable Chrome capture from ?shot=neon&seed=1" },
+  { "name": "3-beach-witness.jpg", "scene": "A midday Ocean Promenade carjacking: the stolen Mirela pulls away as a witness calls police, with beachgoers, the pier and Sol Wheel in view", "captured": "unedited 1280x800 playable Chrome capture from ?shot=beach&seed=1" },
+  { "name": "4-garage-progression.jpg", "scene": "Tavo's Chrome & Paint at night: Dani's personal Vantor sits on the wet forecourt while the garage menu previews engine, armour and brake progression", "captured": "unedited 1280x800 playable Chrome capture from ?shot=garage&seed=1" }
 ]
