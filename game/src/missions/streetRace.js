@@ -3,7 +3,6 @@
 import { lineCoord } from '../world/cityLayout.js';
 
 export const STREET_RACE = {
-  id: 'promenade',
   title: 'Promenade Sprint',
   color: '#3ef2ff',
   time: 58,

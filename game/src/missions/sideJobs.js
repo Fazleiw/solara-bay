@@ -52,7 +52,7 @@ export function createSideJobs(game) {
     if (announce) {
       const title = job.kind === 'taxi' ? 'SHIFT OVER' : job.kind === 'race' ? 'SPRINT FAILED' : 'TACO RUN FAILED';
       game.hud.bigMessage(title, job.earned ? `Earned $${job.earned.toLocaleString()}` : '', job.kind === 'race' ? STREET_RACE.color : '#ffd23f');
-      game.audio?.sfx.missionFailed();
+      if (job.kind === 'race') game.audio?.sfx.missionFailed();
     }
     job = null;
   }
@@ -92,25 +92,19 @@ export function createSideJobs(game) {
   }
 
   function startRace() {
-    job = { kind: 'race', checkpoint: 0, earned: 0, time: STREET_RACE.time, vehicle: game.player.vehicle, paid: false };
+    job = { kind: 'race', checkpoint: 0, earned: 0, time: STREET_RACE.time, vehicle: game.player.vehicle };
     setRaceCheckpoint();
     game.hud.bigMessage(STREET_RACE.title.toUpperCase(), 'Five gates · one car · beat the clock', STREET_RACE.color);
     game.audio?.sfx.missionStart();
   }
 
   function finishRace() {
-    if (!job || job.kind !== 'race' || job.paid) return;
-    job.paid = true;
+    if (!job || job.kind !== 'race') return;
     const reward = STREET_RACE.reward;
+    cancel(false);
     game.state.stats.streetRaces = (game.state.stats.streetRaces ?? 0) + 1;
     game.addCash(reward);
     game.events.emit('sideJobPaid', { kind: 'race', amount: reward });
-    job.marker?.remove();
-    if (job.blip) game.blips.delete(job.blip);
-    game.gps.clear();
-    game.hud.setObjective(null);
-    game.hud.setTimer(null);
-    job = null;
     game.hud.bigMessage('SPRINT COMPLETE', `${STREET_RACE.title} · $${reward.toLocaleString()}`, STREET_RACE.color);
     game.audio?.sfx.missionPassed();
     game.autosave();
@@ -210,8 +204,8 @@ export function createSideJobs(game) {
     return null;
   }
 
-  game.events.on('playerWasted', () => { if (job) cancel(); });
-  game.events.on('playerBusted', () => { if (job) cancel(); });
+  game.events.on('playerWasted', () => { if (job?.kind === 'race') cancel(); });
+  game.events.on('playerBusted', () => { if (job?.kind === 'race') cancel(); });
 
   return { update, cancel, race: STREET_RACE, get active() { return job; } };
 }
