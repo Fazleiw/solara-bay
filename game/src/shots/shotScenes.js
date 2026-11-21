@@ -5,7 +5,7 @@
 //           a roadblock with spike strips ahead, Juno on the radio
 //   beach   midday carjacking on Ocean Promenade by the pier and the Sol Wheel, a witness calls it in
 //   neon    Velvet Static: a night shootout with the Velvet Knives under Deco Row's neon
-//   garage  Tavo's Chrome & Paint: the upgrade menu over Dani's car
+//   payoff  Gold Coast Getaway: Dani completes the quiet Coco drop on foot in Coral Strand
 import { STEP } from '../config.js';
 import { giveWeapon } from '../combat/weapons.js';
 import { freshState } from '../gameplay/session.js';
@@ -184,42 +184,45 @@ const SCENES = {
       run(game, tools, 0.3, [], { aim: true, onStep: () => aimAt(next) });
       run(game, tools, 0.22, [], { aim: true, fire: true, onStep: () => aimAt(next) });
     }
-    // Pull the lens back over Dani's right shoulder to take in the whole street.
+    // Keep Dani and the next Knife large in frame, with the neon street still establishing Deco Row.
     const h = p.human, t = (next ?? first).human;
     const len = Math.hypot(t.x - h.x, t.z - h.z) || 1;
     const fx = (t.x - h.x) / len, fz = (t.z - h.z) / len;
-    game.camera.setPose(h.x - fx * 6.5 - fz * 2.2, 2.5, h.z - fz * 6.5 + fx * 2.2, h.x + fx * 30, 2.4, h.z + fz * 30, 58);
+    game.camera.setPose(h.x - fx * 4.6 - fz * 1.7, 2.25, h.z - fz * 4.6 + fx * 1.7, t.x, t.y + 1.25, t.z, 45);
     clearLens(game, 3);
   },
 
-  garage(game, tools) {
-    prepare(game, 19.45, 6, { respect: 2750 });
+  payoff(game, tools) {
+    prepare(game, 16.1, 5, { respect: 2750 });
     const p = game.player;
-    game.audio.radio.setStation(1);
     giveWeapon(p.inventory, 'pistol', 60);
     giveWeapon(p.inventory, 'smg', 150);
-    const bay = game.garage.bay;
-    const car = game.vehicles.spawn('vantor', bay.x, bay.z + 1.5, Math.PI * 0.84, { color: '#e0115f' });
-    car.tune = { engine: 1, armor: 1, brakes: 0 };
-    car.personal = true;
-    car.persistent = true;
-    car.health = car.maxHealth * 0.71;
-    p.teleport(car.x + 2, car.z);
-    p.enterVehicle(car);
-    populate(game, bay.x, bay.z, 3, 8, 50, 120);
-    run(game, tools, 0.5);
-    game.ui.openGarage();
-    game.garageMenu.select(2);
-    // A low three-quarter view of the car on the forecourt, the lit workshop door behind it.
-    game.camera.setPose(car.x - 7.2, 1.7, car.z - 7.2, car.x + 3.4, 1.4, car.z + 4.4, 54);
-    clearLens(game, 4);
+    p.inventory.current = 'smg';
+    const ctx = startChapterAt(game, 'goldcoast', 2, "Outrun the heat to Tavo's garage, or lose sight of the cops and slip into Coco's");
+    game.vehicles.remove(ctx.data.truck);
+    const coco = LANDMARKS.cocoShack;
+    const drop = { x: lineCoord(9) + 3.5, z: coco.front.z - 10 };
+    ctx.timer(74.2);
+    ctx.waypoint(LANDMARKS.tavoGarage.x, LANDMARKS.tavoGarage.z - 13, { radius: 4.5, color: '#3ef2ff', label: "Tavo's garage" });
+    p.teleport(drop.x, drop.z, Math.PI);
+    populate(game, drop.x, drop.z, 4, 15, 35, 115);
+    game.wanted.clear();
+    game.police.reset();
+    game.dialogue.clear();
+    game.hud.clearBanners();
+    // Two normal mission ticks: enter Coco's live objective, then award the authentic quiet-drop payout.
+    run(game, tools, STEP * 2);
+    game.dialogue.clear();
+    game.camera.setPose(p.x - 5.8, 2.35, p.z - 5.4, p.x + 1.2, 1.45, p.z + 1.8, 53);
+    clearLens(game, 3);
   },
 };
 
 export function stageShot(name, game, tools) {
+  if (name === 'garage') name = 'payoff';
   const scene = SCENES[name] ?? SCENES.cover;
   game.player.controlsLocked = false;
   game.player.human.model.group.visible = true;
   scene(game, tools);
-  game.hud.clearBanners();
+  if (name !== 'payoff') game.hud.clearBanners();
 }
