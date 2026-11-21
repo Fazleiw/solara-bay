@@ -39,11 +39,13 @@ export function createMissionCard(game) {
       setHtml(el.next, next ? `<b>NEXT</b> ${esc(next)}` : `<b>PAYOUT</b> $${def.reward.toLocaleString('en-US')}`);
     } else if (side && state.objective) {
       el.card.dataset.kind = 'side';
-      setText(el.chapter, side.kind === 'taxi' ? `SOLCAB · FARE ${side.fares + 1}` : `COCO'S TACO RUN · ${side.drops ?? 0}/3`);
+      setText(el.chapter, side.kind === 'taxi' ? `SOLCAB · FARE ${side.fares + 1}` : side.kind === 'race' ? `PROMENADE SPRINT · ${side.checkpoint}/${game.side.race.checkpoints.length}` : `COCO'S TACO RUN · ${side.drops ?? 0}/3`);
       setHtml(el.objective, esc(state.objective));
-      segments(side.kind === 'taxi' ? 2 : 3, side.kind === 'taxi' ? (side.step === 'pickup' ? 0 : 1) : side.drops ?? 0);
-      setText(el.stageLabel, side.kind === 'taxi' ? (side.step === 'pickup' ? 'PICK UP' : 'DROP OFF') : 'DELIVERIES');
-      setHtml(el.next, `<b>EARNED</b> $${(side.earned ?? 0).toLocaleString('en-US')}`);
+      const count = side.kind === 'taxi' ? 2 : side.kind === 'race' ? game.side.race.checkpoints.length : 3;
+      const current = side.kind === 'taxi' ? (side.step === 'pickup' ? 0 : 1) : side.kind === 'race' ? side.checkpoint : side.drops ?? 0;
+      segments(count, current);
+      setText(el.stageLabel, side.kind === 'taxi' ? (side.step === 'pickup' ? 'PICK UP' : 'DROP OFF') : side.kind === 'race' ? 'CHECKPOINTS' : 'DELIVERIES');
+      setHtml(el.next, side.kind === 'race' ? `<b>PAYOUT</b> $${game.side.race.reward.toLocaleString('en-US')}` : `<b>EARNED</b> $${(side.earned ?? 0).toLocaleString('en-US')}`);
     } else {
       const def = game.missions.nextStory();
       if (!def) { el.card.classList.add('hidden'); return; }

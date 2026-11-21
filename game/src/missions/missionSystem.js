@@ -170,7 +170,7 @@ export function createMissionSystem(game) {
     // Walking or driving into the next mission's marker starts it.
     const def = nextStory();
     const p = game.player;
-    if (def && system.startMarker && game.clock > system.lockedUntil && game.wanted.level === 0 && system.startMarker.contains(p.x, p.z, p.vehicle ? 1.5 : 0) && p.speed < 8) {
+    if (def && system.startMarker && !game.side?.active && game.clock > system.lockedUntil && game.wanted.level === 0 && system.startMarker.contains(p.x, p.z, p.vehicle ? 1.5 : 0) && p.speed < 8) {
       start(def);
     } else if (def && system.startMarker && game.wanted.level > 0 && system.startMarker.contains(p.x, p.z, 2)) {
       game.hud.prompt('Lose the police before starting a mission');

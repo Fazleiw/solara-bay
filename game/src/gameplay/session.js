@@ -13,7 +13,7 @@ export function freshState() {
     medallions: [],
     respect: 0,
     personalCar: null,
-    stats: { missionsPassed: 0, kills: 0, carsStolen: 0, wasted: 0, busted: 0, distance: 0, taxiFares: 0, tacoRuns: 0 },
+    stats: { missionsPassed: 0, kills: 0, carsStolen: 0, wasted: 0, busted: 0, distance: 0, taxiFares: 0, tacoRuns: 0, streetRaces: 0 },
   };
 }
 

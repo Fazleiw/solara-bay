@@ -3,7 +3,7 @@
 // simulation forward with scripted controls, so every frame is a genuine moment of play:
 //   cover   Gold Coast Getaway: a four-star sunset chase east down Palmera St, GULL ONE overhead,
 //           a roadblock with spike strips ahead, Juno on the radio
-//   beach   midday carjacking on Ocean Promenade by the pier and the Sol Wheel, a witness calls it in
+//   race    Promenade Sprint in progress beside the Sol Wheel, with the next checkpoint live
 //   neon    Velvet Static: a night shootout with the Velvet Knives under Deco Row's neon
 //   payoff  Gold Coast Getaway: Dani completes the quiet Coco drop on foot in Coral Strand
 import { STEP } from '../config.js';
@@ -118,34 +118,29 @@ const SCENES = {
     clearLens(game);
   },
 
-  beach(game, tools) {
-    prepare(game, 13.4, 3, { respect: 1450 });
+  race(game, tools) {
+    prepare(game, 17.1, 3, { respect: 1450 });
     const p = game.player;
-    game.audio.radio.setStation(2);
-    giveWeapon(p.inventory, 'pistol', 36);
-    const promenade = lineCoord(9);
-    // A sedan waits at the lights where Palmera St meets the beach; Dani walks up to the door.
-    const mark = trafficCar(game, 'mirela', promenade - 13, 3.5, EAST, 0, '#e0115f');
-    mark.vx = mark.vz = 0;
-    trafficCar(game, 'solcab', promenade - 3.5, 40, Math.PI, 8);
-    trafficCar(game, 'tessaro', promenade + 3.5, -38, 0, 8, '#a8dadc');
-    trafficCar(game, 'vantor', promenade + 3.5, -10, 0, 10, '#ffd23f');
-    trafficCar(game, 'haulden', promenade - 60, -3.5, -EAST, 5, '#3a5a40');
-    populate(game, promenade + 20, 10, 3, 18, 70, 150);
-    for (let i = 0; i < 16; i += 1) game.peds.spawnNear(promenade + 25, 20, 4, 30);
-    p.teleport(mark.x - 0.6, mark.z - 2.6, Math.PI / 2);
-    game.camera.alignBehind(EAST, 0.12);
-    run(game, tools, 0.3);
-    // F: Dani hauls the driver out and takes the wheel.
-    tools.input.tap('KeyF');
-    run(game, tools, 0.1);
-    game.wanted.setLevel(1);
-    run(game, tools, 0.55, ['KeyW']);
-    game.hud.toast('A WITNESS CALLED THE POLICE', 'Reported stolen vehicle', '#5aa0ff');
-    run(game, tools, 0.1, ['KeyW']);
-    const v = p.vehicle ?? mark;
-    // Behind the car, looking down the boulevard to the beach, the pier and the Sol Wheel.
-    game.camera.setPose(v.x - 12, 3.0, v.z - 5.5, v.x + 60, 5, v.z + 14, 62);
+    game.audio.radio.setStation(0);
+    const race = game.side.race;
+    const car = game.vehicles.spawn('mirela', race.start.x, race.start.z, race.start.heading, { color: '#e0115f' });
+    p.enterVehicle(car);
+    tools.input.tap('KeyE');
+    game.side.update(STEP, tools.input);
+    tools.input.consumePresses();
+    // Clear the first gate through the live side-job logic, then approach gate two at speed.
+    const first = race.checkpoints[0];
+    car.x = first.x; car.z = first.z; car.vx = car.vz = 0;
+    game.side.update(STEP, tools.input);
+    const next = race.checkpoints[1];
+    car.x = next.x; car.z = next.z - 34; car.heading = 0; car.vz = 22;
+    trafficCar(game, 'solcab', next.x + 7, next.z - 5, Math.PI, 8);
+    trafficCar(game, 'tessaro', next.x + 7, next.z + 38, Math.PI, 10, '#a8dadc');
+    trafficCar(game, 'vantor', next.x, next.z - 70, 0, 12, '#ffd23f');
+    populate(game, next.x, next.z, 4, 22, 45, 130);
+    run(game, tools, 0.35, ['KeyW'], { onStep: () => game.side.update(STEP, tools.input) });
+    // Low chase view: the player's car, glowing ordered gate, waterfront and Sol Wheel all read.
+    game.camera.setPose(car.x, 4.2, car.z - 13, car.x, 1.7, car.z + 28, 57);
     clearLens(game, 4);
   },
 

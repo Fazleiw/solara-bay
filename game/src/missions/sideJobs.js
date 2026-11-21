@@ -3,15 +3,20 @@
 //   the meter runs out, and keep the chain going for growing tips.
 //   Coco's Taco Run: at the taco shack press E and deliver three orders around the city
 //   against one clock.
+//   Promenade Sprint: bring a car to the waterfront start and clear five ordered checkpoints.
 import { rng } from '../core/random.js';
 import { createMarker } from '../gameplay/markers.js';
 import { LANDMARKS } from '../world/cityLayout.js';
+import { STREET_RACE } from './streetRace.js';
 
 export function createSideJobs(game) {
   const net = game.world.network;
   const tacoMarker = createMarker(game, LANDMARKS.cocoShack.x + 6, LANDMARKS.cocoShack.z + 9, '#ff9a3c', { radius: 1.5, height: 4, label: "Coco's Taco Run" });
   const tacoBlip = { x: tacoMarker.x, z: tacoMarker.z, color: '#ff9a3c', icon: 'letter', letter: '$', size: 7, edge: false, label: 'Taco Run' };
   game.blips.add(tacoBlip);
+  const raceMarker = createMarker(game, STREET_RACE.start.x, STREET_RACE.start.z, STREET_RACE.color, { radius: 2.5, height: 10, label: STREET_RACE.title });
+  const raceBlip = { x: raceMarker.x, z: raceMarker.z, color: STREET_RACE.color, icon: 'letter', letter: 'R', size: 8, edge: false, label: STREET_RACE.title };
+  game.blips.add(raceBlip);
   let job = null;
 
   function setTarget(x, z, color, label, radius = 4) {
@@ -44,7 +49,11 @@ export function createSideJobs(game) {
     game.gps.clear();
     game.hud.setObjective(null);
     game.hud.setTimer(null);
-    if (announce) game.hud.bigMessage(job.kind === 'taxi' ? 'SHIFT OVER' : 'TACO RUN FAILED', job.earned ? `Earned $${job.earned.toLocaleString()}` : '', '#ffd23f');
+    if (announce) {
+      const title = job.kind === 'taxi' ? 'SHIFT OVER' : job.kind === 'race' ? 'SPRINT FAILED' : 'TACO RUN FAILED';
+      game.hud.bigMessage(title, job.earned ? `Earned $${job.earned.toLocaleString()}` : '', job.kind === 'race' ? STREET_RACE.color : '#ffd23f');
+      game.audio?.sfx.missionFailed();
+    }
     job = null;
   }
 
@@ -76,13 +85,50 @@ export function createSideJobs(game) {
     game.hud.bigMessage("COCO'S TACO RUN", 'Three orders, one clock', '#ff9a3c');
   }
 
+  function setRaceCheckpoint() {
+    const point = STREET_RACE.checkpoints[job.checkpoint];
+    setTarget(point.x, point.z, STREET_RACE.color, point.label, 5);
+    game.hud.setObjective(`Checkpoint ${job.checkpoint + 1} / ${STREET_RACE.checkpoints.length} · ${point.label}`);
+  }
+
+  function startRace() {
+    job = { kind: 'race', checkpoint: 0, earned: 0, time: STREET_RACE.time, vehicle: game.player.vehicle, paid: false };
+    setRaceCheckpoint();
+    game.hud.bigMessage(STREET_RACE.title.toUpperCase(), 'Five gates · one car · beat the clock', STREET_RACE.color);
+    game.audio?.sfx.missionStart();
+  }
+
+  function finishRace() {
+    if (!job || job.kind !== 'race' || job.paid) return;
+    job.paid = true;
+    const reward = STREET_RACE.reward;
+    game.state.stats.streetRaces = (game.state.stats.streetRaces ?? 0) + 1;
+    game.addCash(reward);
+    game.events.emit('sideJobPaid', { kind: 'race', amount: reward });
+    job.marker?.remove();
+    if (job.blip) game.blips.delete(job.blip);
+    game.gps.clear();
+    game.hud.setObjective(null);
+    game.hud.setTimer(null);
+    job = null;
+    game.hud.bigMessage('SPRINT COMPLETE', `${STREET_RACE.title} · $${reward.toLocaleString()}`, STREET_RACE.color);
+    game.audio?.sfx.missionPassed();
+    game.autosave();
+  }
+
   function update(dt, input) {
     const p = game.player;
     const story = game.missions.active;
     tacoMarker.setVisible(!job && !story);
+    raceMarker.setVisible(!job && !story);
     if (!job) {
       if (story) return null;
       if (p.vehicle?.type.taxi && input.pressed('job')) { startTaxi(); return null; }
+      if (raceMarker.contains(p.x, p.z, p.vehicle ? 1.5 : 0)) {
+        if (!p.vehicle || p.vehicle.destroyed) return `Bring a working car to start ${STREET_RACE.title}`;
+        if (input.pressed('interact')) startRace();
+        return `Press E to start ${STREET_RACE.title}`;
+      }
       if (tacoMarker.contains(p.x, p.z, p.vehicle ? 1.5 : 0.3)) {
         if (input.pressed('interact')) startTacoRun();
         return "Press E to start Coco's Taco Run";
@@ -94,6 +140,16 @@ export function createSideJobs(game) {
     game.hud.setTimer(Math.max(0, job.time));
     if (job.time <= 0 || !p.human.alive) { cancel(); return null; }
     const near = Math.hypot(p.x - job.tx, p.z - job.tz) < job.radius + 2;
+    if (job.kind === 'race') {
+      if (game.missions.active || p.vehicle !== job.vehicle || job.vehicle.destroyed) { cancel(); return null; }
+      if (near) {
+        job.checkpoint += 1;
+        game.audio?.sfx.checkpoint();
+        if (job.checkpoint >= STREET_RACE.checkpoints.length) finishRace();
+        else setRaceCheckpoint();
+      }
+      return null;
+    }
     if (job.kind === 'taxi') {
       if (!p.vehicle || !p.vehicle.type.taxi || input.pressed('job')) { cancel(); return null; }
       if (job.step === 'pickup') {
@@ -154,5 +210,8 @@ export function createSideJobs(game) {
     return null;
   }
 
-  return { update, cancel, get active() { return job; } };
+  game.events.on('playerWasted', () => { if (job) cancel(); });
+  game.events.on('playerBusted', () => { if (job) cancel(); });
+
+  return { update, cancel, race: STREET_RACE, get active() { return job; } };
 }

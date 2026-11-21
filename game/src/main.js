@@ -2,7 +2,7 @@
 // object, then runs the screens (title, intro, play, pause, shop, garage) with the world
 // advancing in fixed 1/60 s steps and rendering once per frame through the bloom pipeline.
 //
-// ?shot=cover|beach|neon|payoff&seed=N stages a screenshot scene from the real game code,
+// ?shot=cover|race|neon|payoff&seed=N stages a screenshot scene from the real game code,
 // renders it and sets window.__shotReady (see shots/shotScenes.js).
 import * as THREE from 'three';
 // The Bay Police: wanted level, pursuit units, helicopter, roadblocks, dispatch, witnesses.

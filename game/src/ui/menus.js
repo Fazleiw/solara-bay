@@ -114,7 +114,7 @@ export function createMenus(game, mapCanvas, handlers) {
         <div>Respect ${game.respect.rank} · ${game.respect.title} (${s.respect.toLocaleString()} XP)</div>
         <div>Story chapters: ${s.storyProgress} / ${CHAPTERS.length}</div>
         <div>Sun Medallions: ${s.medallions.length} / ${MEDALLIONS.length}</div>
-        <div>Taxi fares: ${st.taxiFares} · Taco runs: ${st.tacoRuns}</div>
+        <div>Taxi fares: ${st.taxiFares} · Taco runs: ${st.tacoRuns} · Street sprints: ${st.streetRaces ?? 0}</div>
         <div>Cars stolen: ${st.carsStolen} · Takedowns: ${st.kills}</div>
         <div>Times wasted: ${st.wasted} · Busted: ${st.busted}</div>
         <div>Distance driven: ${(st.distance / 1000).toFixed(1)} km</div></section>

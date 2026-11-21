@@ -44,7 +44,7 @@ export function createRespect(game) {
   }
 
   game.events.on('missionEnded', ({ passed, chapter }) => { if (passed) award(XP.chapter + (chapter ?? 1) * 50, 'Chapter complete'); });
-  game.events.on('sideJobPaid', ({ kind }) => award(XP.sideJob, kind === 'taxi' ? 'Solcab fare' : 'Taco delivered'));
+  game.events.on('sideJobPaid', ({ kind }) => award(XP.sideJob, kind === 'taxi' ? 'Solcab fare' : kind === 'race' ? 'Street sprint won' : 'Taco delivered'));
   game.events.on('carJacked', () => award(XP.carjack, 'Carjacking'));
   game.events.on('wantedDropped', ({ level, from }) => { if (level === 0 && from >= 2) award(XP.evade * from, 'Lost the heat'); });
   game.events.on('medallionFound', () => award(XP.medallion, 'Sun Medallion'));

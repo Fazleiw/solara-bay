@@ -22,7 +22,7 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 - **Combat.** Fists, the Kobra 9 pistol, the Rattler SMG, the Breaker 12 shotgun and the Longreach AR, with muzzle flash, tracers, sparks, health and armour.
 - **Story.** Eight chapters with stages, timers and voiced-style dialogue with painted portraits: *Homecoming*, *Showroom Special*, *Heat Wave*, *Velvet Static* (a neon night shootout with the Velvet Knives and their boss), *Tail Lights*, *Gold Coast Getaway* (an armored-truck heist and a four-star escape that ends at Tavo's garage, which takes Dani in under fire, or at Coco's side door a block away, which only opens once no unit can see Dani and costs a cut; Tavo remembers which), *Ironwake Reckoning* and *Sunset Run*.
 - **Progression.** Respect from chapters, side jobs, carjackings, escapes and crew fights climbs six ranks, from Fresh Out to Golden Coast Legend, unlocking guns at Bayside Arms and upgrade tiers at Tavo's Chrome & Paint: repairs, a respray that loses the heat, engine tunes, armour plating and race brakes, each previewed on stat bars. An upgraded car becomes Dani's own and is saved.
-- **Side activities.** Solcab taxi fares, Coco's Taco Run deliveries, 25 hidden Sun Medallions, rival crew turf, the safehouse save point and pickups around the city.
+- **Side activities.** Solcab taxi fares, Coco's Taco Run deliveries, and the timed Promenade Sprint: bring a working car to the cyan R marker on Ocean Promenade, press E, then clear all five waterfront checkpoints in order for $900 and respect. Also: 25 hidden Sun Medallions, rival crew turf, the safehouse save point and pickups around the city.
 - **HUD.** A mission card with chapter, timer, objective, STAGE n/m and what is NEXT; the police-response panel; cash, clock and wanted stars with IN SIGHT / SEARCH ZONE; a five-slot weapon bar with ammo and respect locks; a rotating minimap with GPS route, blips and the police search circle; the district pill; health, armour and respect bars; a radio card with song and artist; a vehicle card with condition, speed and gear; toasts and dialogue. When a pursuit starts, secondary free-roam details collapse while the nearest real dispatch unit stays visible with its call sign, live status and range.
 - **Menus and saves.** A title screen with a story intro, and a pause menu with the city map (click to set a waypoint), the chapter brief and stats, settings and controls. Progress saves to localStorage.
 - **Sound.** Four procedural radio stations with original song titles (Sunwave 101.7, Bayside Bass 94.3, Radio Tropicana 88.9, Low Tide 106.1), plus engines, sirens, the helicopter, surf, gunfire, crashes and explosions, all synthesised with Web Audio.
@@ -40,7 +40,7 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 | 1–5, mouse wheel, Q | Switch weapon |
 | R | Reload · next radio station (in a car) |
 | H | Horn |
-| E | Interact: shops, garage, save, taco run · police siren |
+| E | Interact: shops, garage, save, taco run, street sprint · police siren |
 | T | Taxi fares in a Solcab |
 | C | Look behind |
 | M | City map |
@@ -58,7 +58,7 @@ Then open http://localhost:8080 in desktop Chrome. Any static file server pointe
 
 Developer extras:
 - The four screenshots are unedited 1280 × 800 playable Chrome captures of the deterministic scenes listed in `shots.json`.
-- `?shot=cover|beach|neon|payoff&seed=1` stages four posed scenes from the game code, kept as a development aid.
+- `?shot=cover|race|neon|payoff&seed=1` stages four posed scenes from the game code, kept as a development aid.
 - `?selftest=1` plays through every system in fast-forward and reports each step, both Gold Coast drops included.
 - `node --test tests/*.test.mjs` checks the chase camera's framing (car placement, field of view, look-ahead, recentre rules).
 

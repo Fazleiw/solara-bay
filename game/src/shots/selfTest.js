@@ -198,6 +198,46 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     if (!game.side.active) throw new Error('taco run did not start');
     game.side.cancel(false);
   });
+  step('street race ordering, payout and cleanup', () => {
+    game.wanted.clear();
+    game.police.reset();
+    const race = game.side.race;
+    const car = game.vehicles.spawn('mirela', race.start.x, race.start.z, race.start.heading, { color: '#e0115f' });
+    p.enterVehicle(car);
+    run(0.1, [], ['KeyE']);
+    if (game.side.active?.kind !== 'race') throw new Error('race did not start from the E prompt in a car');
+
+    // Visiting checkpoint two first must not advance or pay anything.
+    const skipped = race.checkpoints[1];
+    car.x = skipped.x; car.z = skipped.z; car.vx = car.vz = 0;
+    run(0.1);
+    if (game.side.active?.checkpoint !== 0) throw new Error('race accepted a skipped checkpoint');
+
+    const cash = game.state.cash, respect = game.state.respect, wins = game.state.stats.streetRaces;
+    for (let i = 0; i < race.checkpoints.length; i += 1) {
+      const point = race.checkpoints[i];
+      car.x = point.x; car.z = point.z; car.vx = car.vz = 0;
+      run(0.1);
+      if (i < race.checkpoints.length - 1 && game.side.active?.checkpoint !== i + 1) throw new Error(`checkpoint ${i + 1} did not advance once`);
+    }
+    if (game.side.active || game.state.cash !== cash + race.reward || game.state.respect !== respect + 60 || game.state.stats.streetRaces !== wins + 1) {
+      throw new Error('finish did not award one cash payout, respect award and win');
+    }
+    run(0.2);
+    if (game.state.cash !== cash + race.reward || game.state.respect !== respect + 60) throw new Error('race paid twice');
+
+    // The same live start path must also cleanly fail on timeout and leaving the entry car.
+    car.x = race.start.x; car.z = race.start.z;
+    run(0.1, [], ['KeyE']);
+    game.side.active.time = 0.01;
+    run(0.1);
+    if (game.side.active) throw new Error('timed-out race stayed active');
+    car.x = race.start.x; car.z = race.start.z;
+    run(0.1, [], ['KeyE']);
+    p.exitVehicle(true);
+    run(0.1);
+    if (game.side.active || game.gps.state.target) throw new Error('vehicle exit did not clear the race and GPS');
+  });
   step('respect ranks', () => {
     game.state.respect = 0;
     game.respect.award(1400, 'self-test');
