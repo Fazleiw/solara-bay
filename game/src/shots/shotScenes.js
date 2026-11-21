@@ -112,9 +112,9 @@ const SCENES = {
     game.dialogue.say([{ who: 'juno', text: 'Roadblock at the Promenade! Thread the gap and do NOT touch the spikes, Dani!', duration: 30 }]);
     run(game, tools, 0.3, ['KeyW']);
     units[0].ramming = true;
-    // A low chase camera behind the pack, looking east into the sunset over the ocean.
+    // A close chase camera that keeps Dani's car dominant while the police pack and route read clearly.
     const lead = game.player.vehicle ?? car;
-    game.camera.setPose(lead.x - 26, 6.2, lead.z - 2.4, lead.x + 30, 2.2, lead.z + 1.4, 53);
+    game.camera.setPose(lead.x - 14, 4.1, lead.z - 4, lead.x + 20, 2, lead.z + 1.4, 57);
     clearLens(game);
   },
 

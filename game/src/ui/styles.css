@@ -216,13 +216,19 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d16; fon
 #hud.pursuit #hud-stars span { font-size: 48px; line-height: 48px; }
 #hud.pursuit #hud-wanted-tag { font-size: 15px; padding: 4px 10px; margin-top: 2px; }
 #hud.pursuit #hud-weapons .wslot:not(.selected) { display: none; }
-#hud.pursuit #hud-weapons .wslot.selected { width: 86px; height: 56px; }
+#hud.pursuit #hud-weapons .wslot.selected { width: 86px; height: 60px; }
+#hud.pursuit #hud-weapons .wslot.selected canvas { width: 62px; height: 26px; top: 3px; }
+#hud.pursuit #hud-weapons .wslot.selected b { font-size: 14px; line-height: 15px; }
+#hud.pursuit #hud-weapons .wslot.selected small { font-size: 9px; line-height: 10px; }
 #hud.pursuit #hud-minimap-wrap { width: 230px; height: 230px; }
 #hud.pursuit #hud-minimap { width: 222px; height: 222px; }
 #hud.pursuit #hud-status { width: 180px; }
 #hud.pursuit #hud-bottomright { width: 248px; }
 #hud.pursuit #hud-vehicle { padding: 7px 11px 6px 10px; }
-#hud.pursuit #hud-vehicle .condition { display: none; }
+#hud.pursuit #hud-vehicle .condition { gap: 6px; margin: 3px 0 1px; }
+#hud.pursuit #hud-vehicle .condition span { font-size: 10px; }
+#hud.pursuit #hud-vehicle .condition .meter { height: 7px; }
+#hud.pursuit #hud-vehicle .condition b { font-size: 11px; width: 30px; }
 #hud.pursuit #hud-speed { font-size: 46px; }
 
 /* ---------- Screens ---------- */
