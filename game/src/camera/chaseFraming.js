@@ -59,7 +59,7 @@ export function recenterStep(rig, car, dt, restPitch = 0.13) {
   let { yaw, pitch } = rig;
   let reverseTime = rig.reverseTime ?? 0;
   if (car.fwdSpeed < -2) reverseTime += dt;
-  else if (car.fwdSpeed > -0.5) reverseTime = 0;
+  else reverseTime = 0;
   if (rig.idle > RECENTRE_DELAY && speed > 2) {
     const behind = reverseTime > REVERSE_LOOK_DELAY ? car.heading + Math.PI : car.heading;
     const easeIn = Math.min(1, (rig.idle - RECENTRE_DELAY) / 0.5);

@@ -120,6 +120,16 @@ test('a quick tap of reverse does not spin the camera round', () => {
   assert.ok(Math.abs(rig.yaw) < 0.2, `tap of reverse swung the camera to ${rig.yaw.toFixed(2)} rad`);
 });
 
+test('reverse pulses separated by a sustained crawl do not trigger the reverse camera', () => {
+  let rig = { yaw: 0, pitch: 0.13, idle: 5, reverseTime: 0 };
+  for (const [speed, seconds] of [[-7, 0.5], [-1, 1.5], [-7, 0.5]]) {
+    for (let elapsed = 0; elapsed < seconds; elapsed += STEP) {
+      rig = { ...rig, ...recenterStep(rig, { heading: 0, fwdSpeed: speed }, STEP) };
+    }
+  }
+  assert.equal(rig.yaw, 0);
+});
+
 test('sustained reversing turns the camera to look out of the back', () => {
   const car = { heading: 0, fwdSpeed: -7 };
   const { rig } = settle(0, car, 3);
