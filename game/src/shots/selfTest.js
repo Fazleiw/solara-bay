@@ -157,7 +157,8 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     if (ctx.stageIndex !== 2 || game.wanted.level !== 4) throw new Error(`case grabbed but stage ${ctx.stageIndex}, ${game.wanted.level} stars`);
     run(0.2);
     const spot = drop === 'coco' ? ctx.data.cocoDrop : ctx.current;
-    if (!ctx.data.routeCue?.includes('$6,000') || !ctx.data.routeCue.includes('$4,500')) throw new Error(`missing route terms: ${ctx.data.routeCue}`);
+    const routeTerms = ctx.data.routeCue?.join(' ') ?? '';
+    if (!routeTerms.includes('$6,000') || !routeTerms.includes('$4,500')) throw new Error(`missing route terms: ${routeTerms}`);
     const car = game.vehicles.spawn('vantor', spot.x, spot.z - 9, 0);
     p.teleport(car.x - 2, car.z);
     p.enterVehicle(car);

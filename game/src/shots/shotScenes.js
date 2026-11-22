@@ -107,17 +107,17 @@ const SCENES = {
     populate(game, 200, 0, 4, 20, 50, 130);
     game.camera.alignBehind(0, 0.12);
     run(game, tools, 0.3, ['KeyW']);
-    // Dispatch boxes the road in at the Promenade, the helicopter leans in over the chase.
+    // Dispatch boxes Marisol Ave in while the helicopter leans in over the chase.
     game.gps.update(1.1);
     game.police.roadblocks.buildAt(140, car.z + 55, 0);
-    game.police.helicopter.placeAt(car.x + 30, 19, car.z - 1, 0);
+    game.police.helicopter.placeAt(car.x - 20, 16, car.z + 48, 0);
     game.dialogue.clear();
-    game.dialogue.say([{ who: 'juno', text: 'Roadblock at the Promenade! Thread the gap and do NOT touch the spikes, Dani!', duration: 30 }]);
+    game.dialogue.say([{ who: 'juno', text: 'Roadblock on Marisol Ave! Thread the gap and do NOT touch the spikes, Dani!', duration: 30 }]);
     run(game, tools, 0.3, ['KeyW']);
     units[0].ramming = true;
     // A close chase camera that keeps Dani's car dominant while the police pack and route read clearly.
     const lead = game.player.vehicle ?? car;
-    game.camera.setPose(lead.x - 4, 4.1, lead.z - 14, lead.x + 1.4, 2, lead.z + 20, 57);
+    game.camera.setPose(lead.x - 3.5, 3.9, lead.z - 11.5, lead.x + 1.2, 2, lead.z + 20, 57);
     clearLens(game);
   },
 

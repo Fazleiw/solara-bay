@@ -52,11 +52,17 @@ function updateEscape(ctx) {
   const seen = g.wanted.state.seen && g.wanted.level > 0;
   const routeCoco = ctx.data.gpsTo === 'coco';
   ctx.objective(routeCoco
-    ? (seen ? "GPS: Coco's side door — break police sight before entry" : "GPS: Coco's side door — pull in while unseen")
-    : "GPS: Tavo's garage — drive into the bay, even with heat");
+    ? (seen ? "Coco needs you unseen — break police sight or take Tavo's marker" : "Coco is clear — follow GPS or take Tavo's marker")
+    : "Follow GPS, or use the map and orange marker for Coco");
   ctx.data.routeCue = routeCoco
-    ? `COCO ${Math.round(toCoco)} m · UNSEEN · $4,500  |  TAVO ${Math.round(toTavo)} m · HEAT OK · $6,000`
-    : `TAVO ${Math.round(toTavo)} m · HEAT OK · $6,000  |  COCO ${Math.round(toCoco)} m · UNSEEN · $4,500`;
+    ? [
+        `GPS · COCO ${Math.round(toCoco)} m · UNSEEN · $4,500`,
+        `MAP · TAVO ${Math.round(toTavo)} m · HEAT OK · $6,000`,
+      ]
+    : [
+        `GPS · TAVO ${Math.round(toTavo)} m · HEAT OK · $6,000`,
+        `MAP · COCO ${Math.round(toCoco)} m · UNSEEN · $4,500`,
+      ];
   if (ctx.atWaypoint(12) && p.vehicle) {
     // Driving into Tavo's bay with the heat on: the door rolls down behind Dani.
     finishEscape(ctx, 'tavo', "Drop the cash at Tavo's garage");
@@ -71,6 +77,7 @@ function finishEscape(ctx, drop, objective) {
   g.police.reset();
   ctx.clearTimer();
   ctx.data.drop = drop;
+  delete ctx.data.routeCue;
   ctx.stage(3, objective);
 }
 

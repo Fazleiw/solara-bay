@@ -37,7 +37,7 @@ export function createMissionCard(game) {
       setText(el.stageLabel, `STAGE ${ctx.stageIndex + 1}/${stages.length}`);
       const next = stages[ctx.stageIndex + 1];
       setHtml(el.next, ctx.data.routeCue
-        ? `<b>ROUTE</b> ${esc(ctx.data.routeCue)}`
+        ? ctx.data.routeCue.map((line) => `<span>${esc(line)}</span>`).join('')
         : next ? `<b>NEXT</b> ${esc(next)}` : `<b>PAYOUT</b> $${def.reward.toLocaleString('en-US')}`);
     } else if (side && state.objective) {
       el.card.dataset.kind = 'side';
