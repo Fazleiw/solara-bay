@@ -36,7 +36,9 @@ export function createMissionCard(game) {
       segments(stages.length, ctx.stageIndex);
       setText(el.stageLabel, `STAGE ${ctx.stageIndex + 1}/${stages.length}`);
       const next = stages[ctx.stageIndex + 1];
-      setHtml(el.next, next ? `<b>NEXT</b> ${esc(next)}` : `<b>PAYOUT</b> $${def.reward.toLocaleString('en-US')}`);
+      setHtml(el.next, ctx.data.routeCue
+        ? `<b>ROUTE</b> ${esc(ctx.data.routeCue)}`
+        : next ? `<b>NEXT</b> ${esc(next)}` : `<b>PAYOUT</b> $${def.reward.toLocaleString('en-US')}`);
     } else if (side && state.objective) {
       el.card.dataset.kind = 'side';
       setText(el.chapter, side.kind === 'taxi' ? `SOLCAB · FARE ${side.fares + 1}` : `COCO'S TACO RUN · ${side.drops ?? 0}/3`);

@@ -5,6 +5,29 @@
 
 const PREFIXES = ['MARLIN', 'HERON', 'TARPON', 'PELICAN', 'SNAPPER', 'OSPREY', 'BARRACUDA', 'EGRET'];
 
+function pointSegmentDistance(p, a, b) {
+  const dx = b.x - a.x, dz = b.z - a.z;
+  const length2 = dx * dx + dz * dz || 1;
+  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.z - a.z) * dz) / length2));
+  return Math.hypot(p.x - (a.x + dx * t), p.z - (a.z + dz * t));
+}
+
+/** Nearest real roadblock that is in front of the player and on the active GPS route. */
+export function findRoadblockAhead(player, blocks, route, heat) {
+  if (!heat || !route?.length) return null;
+  const speed = Math.hypot(player.vx ?? 0, player.vz ?? 0);
+  const fx = speed > 2 ? player.vx / speed : Math.sin(player.heading ?? 0);
+  const fz = speed > 2 ? player.vz / speed : Math.cos(player.heading ?? 0);
+  return blocks.map((block) => {
+    const dx = block.x - player.x, dz = block.z - player.z;
+    const distance = Math.hypot(dx, dz);
+    const ahead = distance ? (dx * fx + dz * fz) / distance : -1;
+    const onRoute = route.some((point, i) => i && pointSegmentDistance(block, route[i - 1], point) < 22);
+    return { block, distance, ahead, onRoute };
+  }).filter((item) => item.distance < 190 && item.ahead > 0.35 && item.onRoute)
+    .sort((a, b) => a.distance - b.distance)[0] ?? null;
+}
+
 /** Status tags with the colour the HUD shows them in. */
 export const UNIT_STATUS = {
   RAMMING: { label: 'RAMMING', color: '#ff4d5e' },
@@ -60,6 +83,15 @@ export function createDispatch(game, force) {
     return { rows: rows.slice(0, limit), more: Math.max(0, rows.length - limit) + force.reserveUnits };
   }
 
+  function roadblockAhead() {
+    const p = game.player;
+    const v = p.vehicle;
+    return findRoadblockAhead({
+      x: p.x, z: p.z, vx: v?.vx, vz: v?.vz,
+      heading: v?.heading ?? game.camera.state.yaw,
+    }, force.roadblocks.blocks, game.gps.state.route, game.wanted.level > 0);
+  }
+
   // Scanner chatter on escalation.
   game.events.on('wantedRaised', ({ level }) => {
     if (game.shotMode) return;
@@ -69,5 +101,5 @@ export function createDispatch(game, force) {
   });
   game.events.on('wantedCleared', () => { chatter.lastLevel = 0; });
 
-  return { callsign, roster, statusOf };
+  return { callsign, roster, statusOf, roadblockAhead };
 }

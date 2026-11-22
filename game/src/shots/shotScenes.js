@@ -85,28 +85,31 @@ const SCENES = {
     const ctx = startChapterAt(game, 'goldcoast', 2, "Outrun the four-star response and reach Tavo's garage");
     game.vehicles.remove(ctx.data.truck);
     const tavo = LANDMARKS.tavoGarage;
+    // This reproducible cover follows the full-payout branch; normal play chooses once by distance.
+    ctx.data.gpsTo = 'tavo';
     ctx.waypoint(tavo.x, tavo.z - 13, { radius: 4.5, color: '#3ef2ff', label: "Tavo's garage" });
     ctx.timer(131.4);
-    const car = game.vehicles.spawn('vantor', 170, -1.8, EAST, { color: '#12c8e0' });
+    const car = game.vehicles.spawn('vantor', 140, 5, 0, { color: '#12c8e0' });
     car.persistent = true;
     p.teleport(car.x, car.z - 2);
     p.enterVehicle(car);
-    car.vx = 31;
+    car.vz = 31;
     game.wanted.setLevel(4);
     // The pack on Dani's bumper: one dead astern, two flanking, one more behind.
-    const units = [[164, 3.4], [158.5, 6.2], [156, 0.8], [151, -4.2]].map(([x, z]) => {
-      const u = game.police.spawnUnitAt(x, z, EAST);
-      u.car.vx = 31;
+    const units = [[135.5, -1], [141.5, -6.5], [146, -9], [137, -14]].map(([x, z]) => {
+      const u = game.police.spawnUnitAt(x, z, 0);
+      u.car.vz = 31;
       return u;
     });
     trafficCar(game, 'solcab', 236, -3.5, -EAST, 6);
     trafficCar(game, 'mirela', 214, -3.5, -EAST, 8, '#f1faee');
     trafficCar(game, 'tessaro', lineCoord(9) - 3.5, 30, Math.PI, 6, '#a8dadc');
     populate(game, 200, 0, 4, 20, 50, 130);
-    game.camera.alignBehind(EAST, 0.12);
+    game.camera.alignBehind(0, 0.12);
     run(game, tools, 0.3, ['KeyW']);
     // Dispatch boxes the road in at the Promenade, the helicopter leans in over the chase.
-    game.police.roadblocks.buildAt(lineCoord(8) + 14, 0, EAST);
+    game.gps.update(1.1);
+    game.police.roadblocks.buildAt(140, car.z + 55, 0);
     game.police.helicopter.placeAt(car.x + 30, 19, car.z - 1, 0);
     game.dialogue.clear();
     game.dialogue.say([{ who: 'juno', text: 'Roadblock at the Promenade! Thread the gap and do NOT touch the spikes, Dani!', duration: 30 }]);
@@ -114,7 +117,7 @@ const SCENES = {
     units[0].ramming = true;
     // A close chase camera that keeps Dani's car dominant while the police pack and route read clearly.
     const lead = game.player.vehicle ?? car;
-    game.camera.setPose(lead.x - 14, 4.1, lead.z - 4, lead.x + 20, 2, lead.z + 1.4, 57);
+    game.camera.setPose(lead.x - 4, 4.1, lead.z - 14, lead.x + 1.4, 2, lead.z + 20, 57);
     clearLens(game);
   },
 

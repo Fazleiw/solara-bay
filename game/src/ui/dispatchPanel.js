@@ -22,12 +22,16 @@ export function createDispatchPanel(game) {
     timer -= dt;
     if (timer > 0 && lastHtml) return;
     timer = 0.25;
-    const { rows, more } = game.police.roster(5);
-    const html = rows.map((r) => `<li class="unit-${r.kind}"><i>${ICONS[r.kind]}</i><b>${r.callsign}</b><span>${Math.round(r.distance)} m</span><em style="--tag:${r.status.color}">${r.status.label}</em></li>`).join('');
+    const roster = game.police.roster(5);
+    const alert = game.police.dispatch.roadblockAhead();
+    const contact = roster.rows.find((r) => r.kind !== 'block');
+    const rows = contact ? [contact, ...roster.rows.filter((r) => r !== contact)] : roster.rows;
+    if (alert) rows.splice(1, 0, { callsign: 'BLOCK AHEAD', kind: 'block', distance: alert.distance, status: { label: 'ROADBLOCK', color: '#ff9f1c' }, alert: true });
+    const html = rows.map((r) => `<li class="unit-${r.kind}${r.alert ? ' roadblock-alert' : ''}"><i>${ICONS[r.kind]}</i><b>${r.callsign}</b><span>${Math.round(r.distance)} m</span><em style="--tag:${r.status.color}">${r.status.label}</em></li>`).join('');
     if (html !== lastHtml) { el.rows.innerHTML = html; lastHtml = html; }
-    const total = rows.length + more;
+    const total = roster.rows.length + roster.more;
     el.count.textContent = `${total} UNIT${total === 1 ? '' : 'S'}`;
-    el.more.textContent = more > 0 ? `+${more} more unit${more === 1 ? '' : 's'} in the search zone` : game.wanted.evading ? 'Units sweeping the search zone' : 'All units on you';
+    el.more.textContent = roster.more > 0 ? `+${roster.more} more unit${roster.more === 1 ? '' : 's'} in the search zone` : game.wanted.evading ? 'Units sweeping the search zone' : 'All units on you';
   }
 
   return { render };

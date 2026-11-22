@@ -145,6 +145,7 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     game.police.reset();
     const index = CHAPTERS.findIndex((c) => c.id === 'goldcoast');
     game.state.storyProgress = index;
+    const cashBefore = game.state.cash;
     const ctx = game.missions.startById('goldcoast');
     const truck = ctx.data.truck;
     truck.damage(truck.maxHealth * 0.85, 'player');
@@ -156,6 +157,7 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     if (ctx.stageIndex !== 2 || game.wanted.level !== 4) throw new Error(`case grabbed but stage ${ctx.stageIndex}, ${game.wanted.level} stars`);
     run(0.2);
     const spot = drop === 'coco' ? ctx.data.cocoDrop : ctx.current;
+    if (!ctx.data.routeCue?.includes('$6,000') || !ctx.data.routeCue.includes('$4,500')) throw new Error(`missing route terms: ${ctx.data.routeCue}`);
     const car = game.vehicles.spawn('vantor', spot.x, spot.z - 9, 0);
     p.teleport(car.x - 2, car.z);
     p.enterVehicle(car);
@@ -165,7 +167,7 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     run(0.3);
     if (drop === 'coco') {
       if (ctx.stageIndex !== 2) throw new Error('Coco opened with a cruiser watching');
-      if (!/break line of sight/.test(ctx.objectiveText)) throw new Error(`objective "${ctx.objectiveText}"`);
+      if (!/break police sight/.test(ctx.objectiveText)) throw new Error(`objective "${ctx.objectiveText}"`);
       game.police.reset();
       game.vehicles.remove(unit.car);
       run(0.5);
@@ -173,6 +175,8 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     run(0.3);
     if (game.missions.active) throw new Error(`still on stage ${ctx.stageIndex}: ${ctx.objectiveText}`);
     if (game.state.choices.goldcoastDrop !== drop) throw new Error(`choice saved as ${game.state.choices.goldcoastDrop}`);
+    const expectedReward = drop === 'coco' ? 4500 : 6000;
+    if (game.state.cash !== cashBefore + expectedReward) throw new Error(`${drop} paid $${game.state.cash - cashBefore}, expected $${expectedReward}`);
     if (game.state.storyProgress !== index + 1) throw new Error(`story progress ${game.state.storyProgress}`);
     if (p.vehicle) p.exitVehicle(true);
     run(0.5);

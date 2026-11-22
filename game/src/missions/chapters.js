@@ -30,31 +30,33 @@ export const NEON_PALMS = { x: lineCoord(6) + 18, z: lineCoord(7) - 8 };
 const TRUCK_START = { x: lineCoord(9) - 3.5, z: lineCoord(2) + 8 };
 const TRUCK_SPEED = 10;
 
-const ESCAPE_OBJECTIVE = "Outrun the heat to Tavo's garage, or lose sight of the cops and slip into Coco's";
+const ESCAPE_OBJECTIVE = "Follow the GPS to stash Pike's cash";
 
 /**
  * Gold Coast Getaway's escape: two drops. Tavo's garage takes Dani in with the cruisers on the
  * bumper; Coco's side door is a block from the heist but only opens once no unit can see Dani,
- * and Coco keeps a cut. The GPS follows whichever drop is nearer, and the objective line says
- * what Coco is waiting for.
+ * and Coco keeps a cut. The GPS chooses the nearer route once, then stays stable so a turn at an
+ * intersection cannot make the HUD and route flip back and forth.
  */
 function updateEscape(ctx) {
   const g = ctx.game;
   const p = g.player;
   ctx.data.cocoDrop ??= ctx.spot(COCO_DROP.x, COCO_DROP.z, { radius: 4.5, color: '#ffb347', label: "Coco's side door" });
-  ctx.data.gpsTo ??= 'tavo';
   const drop = ctx.data.cocoDrop;
   const toCoco = Math.hypot(p.x - drop.x, p.z - drop.z);
   const toTavo = Math.hypot(p.x - garageBay.x, p.z - garageBay.z);
-  const nearer = toCoco < toTavo ? 'coco' : 'tavo';
-  if (nearer !== ctx.data.gpsTo) {
-    ctx.data.gpsTo = nearer;
-    if (nearer === 'coco') g.gps.setTarget(drop.x, drop.z, '#ffb347');
-    else g.gps.setTarget(garageBay.x, garageBay.z, '#3ef2ff');
+  if (!ctx.data.gpsTo) {
+    ctx.data.gpsTo = toCoco < toTavo ? 'coco' : 'tavo';
+    if (ctx.data.gpsTo === 'coco') g.gps.setTarget(drop.x, drop.z, '#ffb347');
   }
   const seen = g.wanted.state.seen && g.wanted.level > 0;
-  if (toCoco < 45) ctx.objective(seen ? "Coco won't open with cops in sight: break line of sight" : "Out of sight: pull up at Coco's side door, now");
-  else ctx.objective(ESCAPE_OBJECTIVE);
+  const routeCoco = ctx.data.gpsTo === 'coco';
+  ctx.objective(routeCoco
+    ? (seen ? "GPS: Coco's side door — break police sight before entry" : "GPS: Coco's side door — pull in while unseen")
+    : "GPS: Tavo's garage — drive into the bay, even with heat");
+  ctx.data.routeCue = routeCoco
+    ? `COCO ${Math.round(toCoco)} m · UNSEEN · $4,500  |  TAVO ${Math.round(toTavo)} m · HEAT OK · $6,000`
+    : `TAVO ${Math.round(toTavo)} m · HEAT OK · $6,000  |  COCO ${Math.round(toCoco)} m · UNSEEN · $4,500`;
   if (ctx.atWaypoint(12) && p.vehicle) {
     // Driving into Tavo's bay with the heat on: the door rolls down behind Dani.
     finishEscape(ctx, 'tavo', "Drop the cash at Tavo's garage");

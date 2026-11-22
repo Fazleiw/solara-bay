@@ -202,15 +202,16 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d16; fon
 #hud.pursuit #hud-radio,
 #hud.pursuit #hud-district,
 #hud.pursuit #hud-crew,
-#hud.pursuit #hud-respect,
-#hud.pursuit #hud-mission-next { display: none !important; }
+#hud.pursuit #hud-respect { display: none !important; }
 #hud.pursuit #hud-topleft { width: 354px; gap: 6px; }
 #hud.pursuit #hud-mission { padding: 9px 13px 8px 12px; background: linear-gradient(160deg, rgba(14,16,34,0.92), rgba(8,9,22,0.82)); }
 #hud.pursuit #hud-objective { margin: 5px 0 7px; font-size: 19px; }
+#hud.pursuit #hud-mission-next { margin-top: 6px; font-size: 13px; }
 #hud.pursuit #hud-dispatch { padding: 6px 11px 5px 10px; }
 #hud.pursuit #hud-dispatch-rows { display: flex; margin: 5px 0 0; }
 #hud.pursuit #hud-dispatch-rows li { display: none; grid-template-columns: 30px 1fr 52px 88px; font-size: 15px; gap: 5px; }
 #hud.pursuit #hud-dispatch-rows li:first-child { display: grid; }
+#hud.pursuit #hud-dispatch-rows li.roadblock-alert { display: grid; }
 #hud.pursuit #hud-dispatch-rows li i svg { width: 27px; }
 #hud.pursuit #hud-dispatch-rows li em { font-size: 12px; }
 #hud.pursuit #hud-dispatch-more { display: none; }
