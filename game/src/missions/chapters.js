@@ -14,6 +14,7 @@
 import { giveWeapon } from '../combat/weapons.js';
 import { attachRouteDriver } from '../ai/routeDriver.js';
 import { LANDMARKS, lineCoord } from '../world/cityLayout.js';
+import { COCO_UNSEEN_SECONDS, TAVO_HOLD_SECONDS, freshEscapeProgress, stepEscapeProgress, switchEscapeRoute } from './goldCoastEscape.js';
 
 const coco = LANDMARKS.cocoShack.front;
 const tavo = LANDMARKS.tavoGarage;
@@ -23,6 +24,8 @@ const lighthouse = LANDMARKS.lighthouse;
 const garageBay = { x: tavo.x, z: tavo.z - 13 };
 /** Coco's side door on Ocean Promenade, a block from the armored truck's route. */
 const COCO_DROP = { x: lineCoord(9) + 3.5, z: coco.z - 10 };
+/** A real, drivable corner on Coral Ave behind the beachfront block, close to Coco's side door. */
+const COCO_COVER = { x: lineCoord(8) + 3.5, z: lineCoord(5) - 3.5 };
 /** The Neon Palms corner in Deco Row where the Velvet Knives hold court. */
 export const NEON_PALMS = { x: lineCoord(6) + 18, z: lineCoord(7) - 8 };
 /** The armored truck's run down Ocean Promenade, from Vista St to the Ironwake vaults: about 50 s at
@@ -35,39 +38,67 @@ const ESCAPE_OBJECTIVE = "Follow the GPS to stash Pike's cash";
 /**
  * Gold Coast Getaway's escape: two drops. Tavo's garage takes Dani in with the cruisers on the
  * bumper; Coco's side door is a block from the heist but only opens once no unit can see Dani,
- * and Coco keeps a cut. The GPS chooses the nearer route once, then stays stable so a turn at an
- * intersection cannot make the HUD and route flip back and forth.
+ * and Coco keeps a cut. The nearer route is suggested once; V is the only thing that switches the
+ * persistent choice, keeping its marker, GPS line and mechanics in agreement.
  */
-function updateEscape(ctx) {
+function updateEscape(ctx, dt) {
   const g = ctx.game;
   const p = g.player;
+  ctx.data.tavoDrop ??= ctx.spot(garageBay.x, garageBay.z, { radius: 4.5, color: '#3ef2ff', label: "Tavo's garage bay" });
   ctx.data.cocoDrop ??= ctx.spot(COCO_DROP.x, COCO_DROP.z, { radius: 4.5, color: '#ffb347', label: "Coco's side door" });
-  const drop = ctx.data.cocoDrop;
+  ctx.data.cocoCover ??= ctx.spot(COCO_COVER.x, COCO_COVER.z, { radius: 10, color: '#8d7bff', label: 'Coral Ave cover' });
+  const drop = ctx.data.cocoDrop, cover = ctx.data.cocoCover;
   const toCoco = Math.hypot(p.x - drop.x, p.z - drop.z);
   const toTavo = Math.hypot(p.x - garageBay.x, p.z - garageBay.z);
-  if (!ctx.data.gpsTo) {
-    ctx.data.gpsTo = toCoco < toTavo ? 'coco' : 'tavo';
-    if (ctx.data.gpsTo === 'coco') g.gps.setTarget(drop.x, drop.z, '#ffb347');
+  if (!ctx.data.escape) {
+    ctx.data.escape = freshEscapeProgress(toCoco < toTavo ? 'coco' : 'tavo');
+    selectEscapeRoute(ctx, ctx.data.escape.route);
+  } else if (g.input?.pressed('route')) {
+    ctx.data.escape = switchEscapeRoute(ctx.data.escape);
+    selectEscapeRoute(ctx, ctx.data.escape.route);
+    g.hud.toast(`ROUTE · ${ctx.data.escape.route.toUpperCase()}`, ctx.data.escape.route === 'tavo' ? "Hold inside Tavo's bay · $6,000" : "Break sight on Coral Ave · $4,500", ctx.data.escape.route === 'tavo' ? '#3ef2ff' : '#ffb347');
   }
   const seen = g.wanted.state.seen && g.wanted.level > 0;
-  const routeCoco = ctx.data.gpsTo === 'coco';
-  ctx.objective(routeCoco
-    ? (seen ? "Coco needs you unseen — break police sight or take Tavo's marker" : "Coco is clear — follow GPS or take Tavo's marker")
-    : "Follow GPS, or use the map and orange marker for Coco");
+  const routeCoco = ctx.data.escape.route === 'coco';
+  stepEscapeProgress(ctx.data.escape, dt, {
+    inTavoBay: ctx.atSpot(ctx.data.tavoDrop, 5),
+    inVehicle: !!p.vehicle,
+    slow: p.speed < 5,
+    seen,
+    inCocoCover: ctx.atSpot(cover, 12),
+  });
+  if (routeCoco) updateCocoRoute(ctx, seen, toCoco);
+  else updateTavoRoute(ctx, toTavo);
   ctx.data.routeCue = routeCoco
-    ? [
-        `GPS · COCO ${Math.round(toCoco)} m · UNSEEN · $4,500`,
-        `MAP · TAVO ${Math.round(toTavo)} m · HEAT OK · $6,000`,
-      ]
-    : [
-        `GPS · TAVO ${Math.round(toTavo)} m · HEAT OK · $6,000`,
-        `MAP · COCO ${Math.round(toCoco)} m · UNSEEN · $4,500`,
-      ];
-  if (ctx.atWaypoint(12) && p.vehicle) {
-    // Driving into Tavo's bay with the heat on: the door rolls down behind Dani.
+    ? [`GPS · COCO $4,500 · ${seen ? 'IN SIGHT' : ctx.data.escape.cocoClear ? 'DOOR CLEAR' : `HIDDEN ${ctx.data.escape.cocoUnseen.toFixed(1)}/${COCO_UNSEEN_SECONDS}s`}`, `V SWITCH · TAVO ${Math.round(toTavo)} m · $6,000`]
+    : [`GPS · TAVO $6,000 · BAY ${ctx.data.escape.tavoHold.toFixed(1)}/${TAVO_HOLD_SECONDS}s`, `V SWITCH · COCO ${Math.round(toCoco)} m · $4,500`];
+  if (!routeCoco && ctx.data.escape.tavoHold >= TAVO_HOLD_SECONDS) {
     finishEscape(ctx, 'tavo', "Drop the cash at Tavo's garage");
-  } else if (!seen && ctx.atSpot(drop, 8)) {
+  } else if (routeCoco && ctx.data.escape.cocoClear && !seen && !p.vehicle && ctx.atSpot(drop, 8)) {
     finishEscape(ctx, 'coco', 'Hand the case to Coco');
+  }
+}
+
+function selectEscapeRoute(ctx, route) {
+  ctx.data.gpsTo = route;
+  const target = route === 'tavo' ? garageBay : COCO_COVER;
+  ctx.waypoint(target.x, target.z, { radius: route === 'tavo' ? 4.5 : 10, color: route === 'tavo' ? '#3ef2ff' : '#8d7bff', label: route === 'tavo' ? "Tavo's garage bay" : 'Coral Ave cover', marker: false });
+}
+
+function updateTavoRoute(ctx, distance) {
+  const hold = ctx.data.escape.tavoHold;
+  ctx.objective(hold > 0 ? `Stay slow in Tavo's bay — opening in ${(TAVO_HOLD_SECONDS - hold).toFixed(1)}s` : `Drive into Tavo's bay and hold under pressure · ${Math.round(distance)} m · V switches`);
+}
+
+function updateCocoRoute(ctx, seen, distance) {
+  const e = ctx.data.escape;
+  if (e.cocoClear) {
+    ctx.objective(`Sight broken — go on foot to Coco's orange side door · ${Math.round(distance)} m · V switches`);
+    if (ctx.current?.x !== COCO_DROP.x || ctx.current?.z !== COCO_DROP.z) ctx.waypoint(COCO_DROP.x, COCO_DROP.z, { radius: 4.5, color: '#ffb347', label: "Coco's side door", marker: false });
+  } else if (seen) {
+    ctx.objective(`Break police sight on the violet Coral Ave backstreet · V switches`);
+  } else {
+    ctx.objective(`Stay hidden on Coral Ave — clear in ${(COCO_UNSEEN_SECONDS - e.cocoUnseen).toFixed(1)}s · V switches`);
   }
 }
 
@@ -328,7 +359,7 @@ export const CHAPTERS = [
       ctx.data.blip = ctx.track(truck, '#ffd23f', 'Armored truck');
       ctx.stage(0, 'Ram the Bastion armored truck off the road on Ocean Promenade');
     },
-    update(ctx) {
+    update(ctx, dt) {
       const g = ctx.game;
       const truck = ctx.data.truck;
       if (ctx.stageIndex === 0) {
@@ -354,7 +385,7 @@ export const CHAPTERS = [
         ctx.say([{ who: 'juno', text: "Tavo shuts his door on anyone. Coco's shack is closer, but she won't open with cops watching, and she takes a cut." }]);
         ctx.waypoint(garageBay.x, garageBay.z, { radius: 4.5, color: '#3ef2ff', label: "Tavo's garage" });
       } else if (ctx.stageIndex === 2) {
-        updateEscape(ctx);
+        updateEscape(ctx, dt);
       } else if (ctx.stageIndex === 3) {
         const viaCoco = ctx.data.drop === 'coco';
         g.state.choices = { ...g.state.choices, goldcoastDrop: ctx.data.drop };

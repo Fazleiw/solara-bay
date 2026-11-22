@@ -10,7 +10,7 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 
 | | | |
 | --- | --- | --- |
-| ![Close on-foot combat under Deco Row's rain-slick neon](screenshots/2-neon-action.jpg) | ![A witness reports the stolen car beside the beach and Sol Wheel](screenshots/3-beach-witness.jpg) | ![Gold Coast Getaway completed on foot at Coco's Coral Strand side door](screenshots/4-gold-coast-payoff.jpg) |
+| ![Close on-foot combat under Deco Row's rain-slick neon](screenshots/2-neon-action.jpg) | ![A witness reports the stolen car beside the beach and Sol Wheel](screenshots/3-beach-witness.jpg) | ![Gold Coast Getaway holds inside Tavo's bay under a live four-star response](screenshots/4-gold-coast-payoff.jpg) |
 
 ## What's in it
 
@@ -20,7 +20,7 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 - **A living street.** Traffic keeps its lanes, stops at red lights and honks. Pedestrians walk, cross, run from gunfire, sometimes fight back, and pull out a phone when they see a crime: if the witness is still standing a few seconds later, the police get the call.
 - **The Bay Police.** One to five stars. Every unit has a call sign, and the police-response panel lists what each is doing (RAMMING, PURSUIT, FIRING, ON FOOT, ROADBLOCK, SPOTLIGHT). Cruisers route through the grid and ram, officers arrest and shoot, the GULL ONE helicopter sweeps a searchlight from three stars, and at four dispatch parks roadblocks with spike strips across the road ahead. Break line of sight and the search zone on the minimap starts to cool. BUSTED and WASTED respawn you at the station or the hospital.
 - **Combat.** Fists, the Kobra 9 pistol, the Rattler SMG, the Breaker 12 shotgun and the Longreach AR, with muzzle flash, tracers, sparks, health and armour.
-- **Story.** Eight chapters with stages, timers and voiced-style dialogue with painted portraits: *Homecoming*, *Showroom Special*, *Heat Wave*, *Velvet Static* (a neon night shootout with the Velvet Knives and their boss), *Tail Lights*, *Gold Coast Getaway* (an armored-truck heist and a four-star escape that ends at Tavo's garage, which takes Dani in under fire, or at Coco's side door a block away, which only opens once no unit can see Dani and costs a cut; Tavo remembers which), *Ironwake Reckoning* and *Sunset Run*.
+- **Story.** Eight chapters with stages, timers and voiced-style dialogue with painted portraits: *Homecoming*, *Showroom Special*, *Heat Wave*, *Velvet Static* (a neon night shootout with the Velvet Knives and their boss), *Tail Lights*, *Gold Coast Getaway* (an armored-truck heist and a four-star escape with a persistent V-selected route: hold the car in Tavo's garage bay under live pressure for $6,000, or break sight for three seconds on Coral Ave and reach Coco's side door on foot for $4,500; Tavo remembers which), *Ironwake Reckoning* and *Sunset Run*.
 - **Progression.** Respect from chapters, side jobs, carjackings, escapes and crew fights climbs six ranks, from Fresh Out to Golden Coast Legend, unlocking guns at Bayside Arms and upgrade tiers at Tavo's Chrome & Paint: repairs, a respray that loses the heat, engine tunes, armour plating and race brakes, each previewed on stat bars. An upgraded car becomes Dani's own and is saved.
 - **Side activities.** Solcab taxi fares, Coco's Taco Run deliveries, 25 hidden Sun Medallions, rival crew turf, the safehouse save point and pickups around the city.
 - **HUD.** A mission card with chapter, timer, objective, STAGE n/m and what is NEXT; the police-response panel; cash, clock and wanted stars with IN SIGHT / SEARCH ZONE; a five-slot weapon bar with ammo and respect locks; a rotating minimap with GPS route, blips and the police search circle; the district pill; health, armour and respect bars; a radio card with song and artist; a vehicle card with condition, speed and gear; toasts and dialogue. When a pursuit starts, secondary free-roam details collapse while the nearest real dispatch contact stays visible with its call sign, live status and range, plus a real roadblock alert only when one is ahead on the GPS route.
@@ -42,6 +42,7 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 | H | Horn |
 | E | Interact: shops, garage, save, taco run · police siren |
 | T | Taxi fares in a Solcab |
+| V | Switch Gold Coast Getaway route |
 | C | Look behind |
 | M | City map |
 | Esc / P | Pause |

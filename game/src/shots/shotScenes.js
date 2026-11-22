@@ -5,11 +5,12 @@
 //           a roadblock with spike strips ahead, Juno on the radio
 //   beach   midday carjacking on Ocean Promenade by the pier and the Sol Wheel, a witness calls it in
 //   neon    Velvet Static: a night shootout with the Velvet Knives under Deco Row's neon
-//   payoff  Gold Coast Getaway: Dani completes the quiet Coco drop on foot in Coral Strand
+//   payoff  Gold Coast Getaway: Tavo's bay opening under live four-star pressure
 import { STEP } from '../config.js';
 import { giveWeapon } from '../combat/weapons.js';
 import { freshState } from '../gameplay/session.js';
 import { NEON_PALMS } from '../missions/chapters.js';
+import { freshEscapeProgress } from '../missions/goldCoastEscape.js';
 import { LANDMARKS, lineCoord } from '../world/cityLayout.js';
 
 const EAST = Math.PI / 2;
@@ -87,6 +88,7 @@ const SCENES = {
     const tavo = LANDMARKS.tavoGarage;
     // This reproducible cover follows the full-payout branch; normal play chooses once by distance.
     ctx.data.gpsTo = 'tavo';
+    ctx.data.escape = freshEscapeProgress('tavo');
     ctx.waypoint(tavo.x, tavo.z - 13, { radius: 4.5, color: '#3ef2ff', label: "Tavo's garage" });
     ctx.timer(131.4);
     const car = game.vehicles.spawn('vantor', 140, 5, 0, { color: '#12c8e0' });
@@ -196,28 +198,31 @@ const SCENES = {
   },
 
   payoff(game, tools) {
-    prepare(game, 16.1, 5, { respect: 2750 });
+    prepare(game, 18.0, 5, { respect: 2750 });
     const p = game.player;
     giveWeapon(p.inventory, 'pistol', 60);
     giveWeapon(p.inventory, 'smg', 150);
     p.inventory.current = 'smg';
-    const ctx = startChapterAt(game, 'goldcoast', 2, "Outrun the heat to Tavo's garage, or lose sight of the cops and slip into Coco's");
+    const ctx = startChapterAt(game, 'goldcoast', 2, "Choose Tavo or Coco with V");
     game.vehicles.remove(ctx.data.truck);
-    const coco = LANDMARKS.cocoShack;
-    const drop = { x: lineCoord(9) + 3.5, z: coco.front.z - 10 };
-    ctx.timer(74.2);
+    const bay = { x: LANDMARKS.tavoGarage.x, z: LANDMARKS.tavoGarage.z - 13 };
+    ctx.timer(82.4);
     ctx.waypoint(LANDMARKS.tavoGarage.x, LANDMARKS.tavoGarage.z - 13, { radius: 4.5, color: '#3ef2ff', label: "Tavo's garage" });
-    p.teleport(drop.x, drop.z, Math.PI);
-    populate(game, drop.x, drop.z, 4, 15, 35, 115);
-    game.wanted.clear();
-    game.police.reset();
+    const car = game.vehicles.spawn('vantor', bay.x, bay.z, 0, { color: '#12c8e0' });
+    p.teleport(car.x, car.z - 2);
+    p.enterVehicle(car);
+    car.vx = car.vz = 0;
+    populate(game, bay.x, bay.z, 4, 12, 30, 100);
+    game.wanted.setLevel(4);
+    game.police.spawnUnitAt(bay.x - 28, bay.z - 8, Math.PI / 2);
+    game.police.spawnUnitAt(bay.x + 30, bay.z - 12, -Math.PI / 2);
     game.dialogue.clear();
     game.hud.clearBanners();
-    // Two normal mission ticks: enter Coco's live objective, then award the authentic quiet-drop payout.
-    run(game, tools, STEP * 2);
+    // The real mission ticks count a partial bay hold while police keep their line of sight.
+    run(game, tools, 2.1);
     game.dialogue.clear();
-    game.camera.setPose(p.x - 5.8, 2.35, p.z - 5.4, p.x + 1.2, 1.45, p.z + 1.8, 53);
-    clearLens(game, 3);
+    game.camera.setPose(car.x - 11, 4.2, car.z - 15, car.x, 2.1, car.z + 8, 58);
+    clearLens(game, 4);
   },
 };
 

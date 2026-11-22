@@ -18,6 +18,7 @@ const BINDINGS = {
   map: ['KeyM'],
   pause: ['Escape', 'KeyP'],
   job: ['KeyT'],
+  route: ['KeyV'],
   lookBack: ['KeyC'],
   weapon1: ['Digit1'],
   weapon2: ['Digit2'],

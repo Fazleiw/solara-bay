@@ -135,6 +135,7 @@ game.audio = createAudioEngine(game);
 game.audio.onRadioChange = (station) => game.hud.radioToast(station);
 const session = createSession(game);
 const input = createInput(canvas);
+game.input = input;
 
 // Landmark blips shown when nearby.
 for (const [key, letter, color] of [['safehouse', 'S', '#7dffb3'], ['hospital', '+', '#ff6b6b'], ['policeHQ', 'P', '#6fa8ff'], ['gunShop', 'A', '#ff5050'], ['tavoGarage', 'R', '#3ef2ff']]) {

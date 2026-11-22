@@ -156,22 +156,53 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     run(0.2);
     if (ctx.stageIndex !== 2 || game.wanted.level !== 4) throw new Error(`case grabbed but stage ${ctx.stageIndex}, ${game.wanted.level} stars`);
     run(0.2);
-    const spot = drop === 'coco' ? ctx.data.cocoDrop : ctx.current;
+    const initialRoute = ctx.data.escape.route;
     const routeTerms = ctx.data.routeCue?.join(' ') ?? '';
     if (!routeTerms.includes('$6,000') || !routeTerms.includes('$4,500')) throw new Error(`missing route terms: ${routeTerms}`);
+    // V is collision-free, persistent, and retargets the real GPS in both directions.
+    const firstTarget = { ...game.gps.state.target };
+    input.tap('KeyV'); run(0.1);
+    if (ctx.data.escape.route === initialRoute) throw new Error('V did not switch route');
+    if (game.gps.state.target.x === firstTarget.x && game.gps.state.target.z === firstTarget.z) throw new Error('V did not retarget GPS');
+    input.tap('KeyV'); run(0.1);
+    if (ctx.data.escape.route !== initialRoute) throw new Error('second V did not restore route');
+    if (ctx.data.escape.route !== drop) { input.tap('KeyV'); run(0.1); }
+    if (ctx.data.escape.route !== drop) throw new Error(`route stayed ${ctx.data.escape.route}, wanted ${drop}`);
+    const spot = drop === 'coco' ? ctx.data.cocoCover : ctx.data.tavoDrop;
     const car = game.vehicles.spawn('vantor', spot.x, spot.z - 9, 0);
     p.teleport(car.x - 2, car.z);
     p.enterVehicle(car);
-    // A cruiser right beside Dani: Coco keeps her door shut, Tavo still takes the car in.
-    const unit = game.police.spawnUnitAt(car.x + 5, car.z, 0);
+    // A cruiser right beside Dani keeps real sight and pressure live.
+    game.police.spawnUnitAt(car.x + 22, car.z, 0);
     car.x = spot.x; car.z = spot.z; car.vx = car.vz = 0;
-    run(0.3);
+    const runParked = (seconds, x = spot.x, z = spot.z) => {
+      for (let t = 0; t < seconds; t += STEP) {
+        car.x = x; car.z = z; car.vx = car.vz = 0;
+        run(STEP);
+      }
+    };
+    runParked(0.3);
     if (drop === 'coco') {
       if (ctx.stageIndex !== 2) throw new Error('Coco opened with a cruiser watching');
-      if (!/break police sight/.test(ctx.objectiveText)) throw new Error(`objective "${ctx.objectiveText}"`);
+      if (!/break police sight/i.test(ctx.objectiveText)) throw new Error(`objective "${ctx.objectiveText}"`);
       game.police.reset();
-      game.vehicles.remove(unit.car);
-      run(0.5);
+      runParked(1.2);
+      if (ctx.data.escape.cocoClear) throw new Error('brief unseen window cleared Coco');
+      game.police.spawnUnitAt(car.x + 22, car.z, 0);
+      runParked(0.3);
+      if (ctx.data.escape.cocoUnseen !== 0) throw new Error('restored sight did not reset Coco');
+      game.police.reset();
+      game.wanted.clear(); // The last star dropping still starts a valid, real unseen window.
+      runParked(3.2);
+      if (!ctx.data.escape.cocoClear) throw new Error('real unseen window did not clear Coco');
+      p.exitVehicle(true);
+      p.teleport(ctx.data.cocoDrop.x, ctx.data.cocoDrop.z);
+    } else {
+      runParked(1.4);
+      if (ctx.data.escape.tavoHold <= 0 || ctx.stageIndex !== 2) throw new Error('Tavo hold did not count visibly');
+      runParked(0.2, spot.x + 20, spot.z);
+      if (ctx.data.escape.tavoHold !== 0) throw new Error('leaving Tavo bay did not reset hold');
+      runParked(5.2);
     }
     run(0.3);
     if (game.missions.active) throw new Error(`still on stage ${ctx.stageIndex}: ${ctx.objectiveText}`);
