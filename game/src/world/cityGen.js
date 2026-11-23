@@ -92,6 +92,15 @@ export function buildCity(scene, renderer) {
   finishChunk(extra, materials, city);
   materials.neonSigns = signs.build(city);
 
+  // Mission-only roll-up panel for Tavo's open workshop bay; the hold raises it in real time.
+  const tavoShutter = new THREE.Mesh(
+    new THREE.BoxGeometry(11.2, 5.5, 0.18),
+    new THREE.MeshStandardMaterial({ color: '#61717b', roughness: 0.72, metalness: 0.48 }),
+  );
+  tavoShutter.position.set(LANDMARKS.tavoGarage.x, 2.87, LANDMARKS.tavoGarage.z - 5.45);
+  tavoShutter.visible = false;
+  city.add(tavoShutter);
+
   const propSet = buildProps(props, materials, textures, network, scene);
   const water = createWater(scene);
   const sky = createSky(scene);
@@ -115,6 +124,7 @@ export function buildCity(scene, renderer) {
     water,
     sky,
     props: propSet,
+    tavoShutter,
     update(dt, focus, camera) {
       clock += dt;
       dayNight.update(dt, focus);

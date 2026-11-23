@@ -137,6 +137,7 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
       run(3, ['KeyW']);
       game.missions.abort();
       run(0.5);
+      if (def.id === 'goldcoast' && game.world.tavoShutter?.visible) throw new Error('Tavo shutter remained after abort');
     });
   }
   // Gold Coast Getaway's two drops: wreck the truck, grab the case, then stash it either way.
@@ -169,13 +170,14 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     if (ctx.data.escape.route !== drop) { input.tap('KeyV'); run(0.1); }
     if (ctx.data.escape.route !== drop) throw new Error(`route stayed ${ctx.data.escape.route}, wanted ${drop}`);
     const spot = drop === 'coco' ? ctx.data.cocoCover : ctx.data.tavoDrop;
-    const car = game.vehicles.spawn('vantor', spot.x, spot.z - 9, 0);
+    const parked = drop === 'tavo' ? { x: spot.x, z: spot.z - 2.5 } : spot;
+    const car = game.vehicles.spawn('vantor', parked.x, parked.z - 9, 0);
     p.teleport(car.x - 2, car.z);
     p.enterVehicle(car);
     // A cruiser right beside Dani keeps real sight and pressure live.
-    game.police.spawnUnitAt(car.x + 22, car.z, 0);
-    car.x = spot.x; car.z = spot.z; car.vx = car.vz = 0;
-    const runParked = (seconds, x = spot.x, z = spot.z) => {
+    let stagedUnit = game.police.spawnUnitAt(car.x, car.z + 8, 0);
+    car.x = parked.x; car.z = parked.z; car.vx = car.vz = 0;
+    const runParked = (seconds, x = parked.x, z = parked.z) => {
       for (let t = 0; t < seconds; t += STEP) {
         car.x = x; car.z = z; car.vx = car.vz = 0;
         run(STEP);
@@ -186,26 +188,43 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
       if (ctx.stageIndex !== 2) throw new Error('Coco opened with a cruiser watching');
       if (!/break police sight/i.test(ctx.objectiveText)) throw new Error(`objective "${ctx.objectiveText}"`);
       game.police.reset();
+      game.allowSpawning = false;
+      game.police.helicopter.placeAt(spot.x + 26, 34, spot.z, 0.05);
       runParked(1.2);
+      if (game.wanted.level !== 4 || game.wanted.state.seen) throw new Error(`cover did not hide real four-star sight (${game.wanted.level}, ${game.wanted.state.seen})`);
       if (ctx.data.escape.cocoClear) throw new Error('brief unseen window cleared Coco');
-      game.police.spawnUnitAt(car.x + 22, car.z, 0);
+      stagedUnit = game.police.spawnUnitAt(car.x, car.z + 8, 0);
       runParked(0.3);
       if (ctx.data.escape.cocoUnseen !== 0) throw new Error('restored sight did not reset Coco');
-      game.police.reset();
-      game.wanted.clear(); // The last star dropping still starts a valid, real unseen window.
+      game.police.removeUnitFor(stagedUnit.car);
       runParked(3.2);
-      if (!ctx.data.escape.cocoClear) throw new Error('real unseen window did not clear Coco');
+      if (game.wanted.level !== 4 || game.wanted.state.seen || !ctx.data.escape.cocoClear) throw new Error('real wanted helicopter cover did not qualify Coco');
       p.exitVehicle(true);
       p.teleport(ctx.data.cocoDrop.x, ctx.data.cocoDrop.z);
+      stagedUnit = game.police.spawnUnitAt(p.x, p.z + 8, 0);
+      run(0.2);
+      if (ctx.stageIndex !== 2 || !ctx.data.escape.cocoClear) throw new Error('Coco door ignored restored sight or lost earned cover');
+      if (!/cover qualified.*break sight/i.test(ctx.objectiveText)) throw new Error(`final Coco guidance "${ctx.objectiveText}"`);
+      game.police.officers.reset();
+      game.police.removeUnitFor(stagedUnit.car);
+      // The real searchlight is blind for the last 1.5 seconds of every six-second sweep.
+      // Let normal simulation reach that window; allow a second sweep only for boundary timing.
+      for (let sweep = 0; sweep < 2 && game.missions.active; sweep += 1) {
+        for (let elapsed = 0; elapsed < 6 && game.missions.active; elapsed += STEP) run(STEP);
+      }
     } else {
+      game.allowSpawning = false;
       runParked(1.4);
       if (ctx.data.escape.tavoHold <= 0 || ctx.stageIndex !== 2) throw new Error('Tavo hold did not count visibly');
+      game.police.officers.reset();
+      game.police.removeUnitFor(stagedUnit.car);
       runParked(0.2, spot.x + 20, spot.z);
       if (ctx.data.escape.tavoHold !== 0) throw new Error('leaving Tavo bay did not reset hold');
       runParked(5.2);
     }
-    run(0.3);
+    if (drop !== 'coco') run(0.3);
     if (game.missions.active) throw new Error(`still on stage ${ctx.stageIndex}: ${ctx.objectiveText}`);
+    if (game.world.tavoShutter?.visible) throw new Error('Tavo shutter remained after payoff');
     if (game.state.choices.goldcoastDrop !== drop) throw new Error(`choice saved as ${game.state.choices.goldcoastDrop}`);
     const expectedReward = drop === 'coco' ? 4500 : 6000;
     if (game.state.cash !== cashBefore + expectedReward) throw new Error(`${drop} paid $${game.state.cash - cashBefore}, expected $${expectedReward}`);
@@ -213,7 +232,15 @@ export function runSelfTest(game, { simulate, input, session, interactions }, re
     if (p.vehicle) p.exitVehicle(true);
     run(0.5);
   };
-  const tryEscape = (drop) => { try { escapeTo(drop); } finally { game.missions.abort(); } };
+  const tryEscape = (drop) => {
+    const allowSpawning = game.allowSpawning;
+    try { escapeTo(drop); } finally {
+      game.allowSpawning = allowSpawning;
+      game.missions.abort();
+      game.police.reset();
+      if (p.vehicle) p.exitVehicle(true);
+    }
+  };
   step("gold coast: Tavo's garage under fire", () => tryEscape('tavo'));
   step("gold coast: Coco's door only when unseen", () => tryEscape('coco'));
   step('taxi fares', () => {

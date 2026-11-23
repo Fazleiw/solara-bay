@@ -19,7 +19,6 @@ export function stepEscapeProgress(state, dt, conditions) {
   } else {
     if (conditions.seen) {
       state.cocoUnseen = 0;
-      state.cocoClear = false;
     } else if (!state.cocoClear && conditions.inCocoCover) {
       state.cocoUnseen = Math.min(COCO_UNSEEN_SECONDS, state.cocoUnseen + dt);
       state.cocoClear = state.cocoUnseen >= COCO_UNSEEN_SECONDS;

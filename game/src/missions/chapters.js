@@ -25,7 +25,7 @@ const garageBay = { x: tavo.x, z: tavo.z - 13 };
 /** Coco's side door on Ocean Promenade, a block from the armored truck's route. */
 const COCO_DROP = { x: lineCoord(9) + 3.5, z: coco.z - 10 };
 /** A real, drivable corner on Coral Ave behind the beachfront block, close to Coco's side door. */
-const COCO_COVER = { x: lineCoord(8) + 3.5, z: lineCoord(5) - 3.5 };
+const COCO_COVER = { x: 216, z: -34 };
 /** The Neon Palms corner in Deco Row where the Velvet Knives hold court. */
 export const NEON_PALMS = { x: lineCoord(6) + 18, z: lineCoord(7) - 8 };
 /** The armored truck's run down Ocean Promenade, from Vista St to the Ironwake vaults: about 50 s at
@@ -69,6 +69,13 @@ function updateEscape(ctx, dt) {
   });
   if (routeCoco) updateCocoRoute(ctx, seen, toCoco);
   else updateTavoRoute(ctx, toTavo);
+  const shutter = g.world.tavoShutter;
+  if (shutter) {
+    const open = ctx.data.escape.tavoHold / TAVO_HOLD_SECONDS;
+    shutter.visible = !routeCoco;
+    shutter.scale.y = Math.max(0.01, 1 - open);
+    shutter.position.y = 2.87 + 2.75 * open;
+  }
   ctx.data.routeCue = routeCoco
     ? [`GPS · COCO $4,500 · ${seen ? 'IN SIGHT' : ctx.data.escape.cocoClear ? 'DOOR CLEAR' : `HIDDEN ${ctx.data.escape.cocoUnseen.toFixed(1)}/${COCO_UNSEEN_SECONDS}s`}`, `V SWITCH · TAVO ${Math.round(toTavo)} m · $6,000`]
     : [`GPS · TAVO $6,000 · BAY ${ctx.data.escape.tavoHold.toFixed(1)}/${TAVO_HOLD_SECONDS}s`, `V SWITCH · COCO ${Math.round(toCoco)} m · $4,500`];
@@ -93,10 +100,15 @@ function updateTavoRoute(ctx, distance) {
 function updateCocoRoute(ctx, seen, distance) {
   const e = ctx.data.escape;
   if (e.cocoClear) {
-    ctx.objective(`Sight broken — go on foot to Coco's orange side door · ${Math.round(distance)} m · V switches`);
+    ctx.objective(seen
+      ? `Cover qualified — break sight, then go on foot to Coco's orange side door · V switches`
+      : `Cover qualified — go on foot to Coco's orange side door · ${Math.round(distance)} m · V switches`);
     if (ctx.current?.x !== COCO_DROP.x || ctx.current?.z !== COCO_DROP.z) ctx.waypoint(COCO_DROP.x, COCO_DROP.z, { radius: 4.5, color: '#ffb347', label: "Coco's side door", marker: false });
   } else if (seen) {
     ctx.objective(`Break police sight on the violet Coral Ave backstreet · V switches`);
+    if (ctx.current?.x !== COCO_COVER.x || ctx.current?.z !== COCO_COVER.z) selectEscapeRoute(ctx, 'coco');
+  } else if (!ctx.atSpot(ctx.data.cocoCover, 12)) {
+    ctx.objective(`Reach violet Coral Ave cover unseen · ${Math.round(Math.hypot(ctx.game.player.x - COCO_COVER.x, ctx.game.player.z - COCO_COVER.z))} m · V switches`);
   } else {
     ctx.objective(`Stay hidden on Coral Ave — clear in ${(COCO_UNSEEN_SECONDS - e.cocoUnseen).toFixed(1)}s · V switches`);
   }
@@ -348,6 +360,7 @@ export const CHAPTERS = [
     stages: ['Hit the Solmark armored truck', 'Grab the cash case', 'Outrun the Bay Police', "Stash the cash at Tavo's or Coco's"],
     begin(ctx) {
       const g = ctx.game;
+      ctx.onCleanup(() => { if (g.world.tavoShutter) g.world.tavoShutter.visible = false; });
       ctx.say([
         { who: 'tavo', text: "Pike's payroll rides a Bastion armored truck down Ocean Promenade every sundown." },
         { who: 'juno', text: "I'm Juno. I open the case, you do the driving. Deal?" },

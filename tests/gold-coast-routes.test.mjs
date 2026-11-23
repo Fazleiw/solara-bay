@@ -28,4 +28,6 @@ test('Gold Coast route choice persists and both holds reset on unsafe interrupti
   assert.equal(coco.cocoClear, true);
   stepEscapeProgress(coco, 1, { seen: false, inCocoCover: false });
   assert.equal(coco.cocoClear, true, 'cleared route remains payable at the side door, including zero heat');
+  stepEscapeProgress(coco, 0.1, { seen: true, inCocoCover: false });
+  assert.equal(coco.cocoClear, true, 'earned cover milestone survives restored sight; door still checks live sight');
 });

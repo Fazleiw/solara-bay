@@ -73,8 +73,10 @@ export function createPolice(game) {
       const d = Math.hypot(t.x - car.x, t.z - car.z);
       if (d < 15 || (d < WANTED.sightRange && game.world.collision.lineOfSight(car.x, 1.4, car.z, t.x, t.y, t.z))) return true;
     }
-    // The searchlight holds the player for most of each sweep.
-    return force.helicopter.state.onTarget && game.clock % 6 < 4.5;
+    // The searchlight holds the player for most of each sweep, but solid roofs still provide cover.
+    const heli = force.helicopter.state;
+    return heli.onTarget && game.clock % 6 < 4.5
+      && game.world.collision.lineOfSight(heli.x, heli.y, heli.z, t.x, t.y, t.z);
   }
 
   // A cruiser that trades paint with the player is logged as ramming.
