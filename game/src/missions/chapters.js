@@ -76,9 +76,10 @@ function updateEscape(ctx, dt) {
     shutter.scale.y = Math.max(0.01, 1 - open);
     shutter.position.y = 2.87 + 2.75 * open;
   }
+  // One NEXT line: the chosen drop and its cut, and what V swaps it for.
   ctx.data.routeCue = routeCoco
-    ? [`GPS · COCO $4,500 · ${seen ? 'IN SIGHT' : ctx.data.escape.cocoClear ? 'DOOR CLEAR' : `HIDDEN ${ctx.data.escape.cocoUnseen.toFixed(1)}/${COCO_UNSEEN_SECONDS}s`}`, `V SWITCH · TAVO ${Math.round(toTavo)} m · $6,000`]
-    : [`GPS · TAVO $6,000 · BAY ${ctx.data.escape.tavoHold.toFixed(1)}/${TAVO_HOLD_SECONDS}s`, `V SWITCH · COCO ${Math.round(toCoco)} m · $4,500`];
+    ? [`Coco's side door · $4,500 · V for Tavo $6,000`]
+    : [`Tavo's bay · $6,000 · V for Coco $4,500`];
   if (!routeCoco && ctx.data.escape.tavoHold >= TAVO_HOLD_SECONDS) {
     finishEscape(ctx, 'tavo', "Drop the cash at Tavo's garage");
   } else if (routeCoco && ctx.data.escape.cocoClear && !seen && !p.vehicle && ctx.atSpot(drop, 8)) {
@@ -94,7 +95,7 @@ function selectEscapeRoute(ctx, route) {
 
 function updateTavoRoute(ctx, distance) {
   const hold = ctx.data.escape.tavoHold;
-  ctx.objective(hold > 0 ? `Stay slow in Tavo's bay — opening in ${(TAVO_HOLD_SECONDS - hold).toFixed(1)}s` : `Drive into Tavo's bay and hold under pressure · ${Math.round(distance)} m · V switches`);
+  ctx.objective(hold > 0 ? `Stay slow in Tavo's bay — opening in ${(TAVO_HOLD_SECONDS - hold).toFixed(1)}s` : `Lose the heat and hold in Tavo's garage bay · ${Math.round(distance)} m`);
 }
 
 function updateCocoRoute(ctx, seen, distance) {
@@ -121,6 +122,7 @@ function finishEscape(ctx, drop, objective) {
   ctx.clearTimer();
   ctx.data.drop = drop;
   delete ctx.data.routeCue;
+  ctx.data.loot = 0;
   ctx.stage(3, objective);
 }
 
@@ -389,6 +391,8 @@ export const CHAPTERS = [
       } else if (ctx.stageIndex === 1 && ctx.atWaypoint() && !g.player.vehicle) {
         g.audio?.sfx.pickup(true);
         g.wanted.setLevel(4);
+        // The Solmark case: what the HUD's LOOT counter shows until it is stashed.
+        ctx.data.loot = 48250;
         ctx.say([
           { who: 'dispatch', text: 'Armored car robbery, Ocean Promenade. GULL ONE, light them up.' },
           { who: 'juno', text: "Case is ours. Now drive like you mean it, Dani!" },

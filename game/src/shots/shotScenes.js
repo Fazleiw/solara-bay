@@ -74,15 +74,16 @@ function startChapterAt(game, id, index, objective) {
 
 const SCENES = {
   cover(game, tools) {
-    prepare(game, 18.2, 5, { respect: 2900 });
+    prepare(game, 17.6, 5, { respect: 2900 });
     const p = game.player;
     game.audio.radio.setStation(1);
     giveWeapon(p.inventory, 'pistol', 60);
     giveWeapon(p.inventory, 'smg', 180);
+    giveWeapon(p.inventory, 'shotgun', 24);
     p.inventory.current = 'smg';
     p.human.armor = 62;
     p.human.health = 78;
-    // Gold Coast Getaway, stage 3: the case is in the car and the Bay Police are on the bumper.
+    // Gold Coast Getaway, stage 3: the armored-truck take is in the car and the Bay Police are on the bumper.
     const ctx = startChapterAt(game, 'goldcoast', 2, "Outrun the four-star response and reach Tavo's garage");
     game.vehicles.remove(ctx.data.truck);
     const tavo = LANDMARKS.tavoGarage;
@@ -91,35 +92,59 @@ const SCENES = {
     ctx.data.escape = freshEscapeProgress('tavo');
     ctx.waypoint(tavo.x, tavo.z - 13, { radius: 4.5, color: '#3ef2ff', label: "Tavo's garage" });
     ctx.timer(131.4);
-    const car = game.vehicles.spawn('vantor', 140, 5, 0, { color: '#12c8e0' });
+    ctx.data.loot = 48250;
+    // South down Ocean Promenade at golden hour: palms, the beach, the pier and the sea on the right.
+    const lane = lineCoord(9) - 3.5;
+    const SOUTH = Math.PI;
+    const car = game.vehicles.spawn('vantor', lane, 150, SOUTH, { color: '#12c8e0' });
     car.persistent = true;
-    p.teleport(car.x, car.z - 2);
+    p.teleport(car.x, car.z + 2);
     p.enterVehicle(car);
-    car.vz = 31;
-    game.wanted.setLevel(4);
-    // The pack on Dani's bumper: one dead astern, two flanking, one more behind.
-    const units = [[135.5, -1], [141.5, -6.5], [146, -9], [137, -14]].map(([x, z]) => {
-      const u = game.police.spawnUnitAt(x, z, 0);
-      u.car.vz = 31;
-      return u;
-    });
-    trafficCar(game, 'solcab', 236, -3.5, -EAST, 6);
-    trafficCar(game, 'mirela', 214, -3.5, -EAST, 8, '#f1faee');
-    trafficCar(game, 'tessaro', lineCoord(9) - 3.5, 30, Math.PI, 6, '#a8dadc');
-    populate(game, 200, 0, 4, 20, 50, 130);
-    game.camera.alignBehind(0, 0.12);
-    run(game, tools, 0.3, ['KeyW']);
-    // Dispatch boxes Marisol Ave in while the helicopter leans in over the chase.
+    car.vz = -24;
+    game.wanted.setLevel(5);
+    // The pack: one alongside trading paint, one dead astern, one more working up from behind.
+    const side = game.police.spawnUnitAt(lane + 3.4, 151.5, SOUTH);
+    const astern = game.police.spawnUnitAt(lane - 0.4, 156, SOUTH);
+    const trailing = game.police.spawnUnitAt(lane + 3.5, 176, SOUTH);
+    for (const u of [side, astern, trailing]) u.car.vz = -24;
+    // One cruiser has already slewed across the lane ahead and its crew is out shooting.
+    const ahead = game.police.spawnUnitAt(lane + 2, 124, SOUTH + 1.1);
+    game.police.deployOfficers(ahead);
+    // A traffic car that lost to the spike strip burns on the beach side.
+    const wreck = trafficCar(game, 'mirela', lane + 6, 104, SOUTH + 0.5, 0, '#f1faee');
+    wreck.vx = wreck.vz = 0;
+    wreck.driver = null; wreck.ai = null;
+    wreck.model.body.material = wreck.model.assets.burnt;
+    wreck.health = 0;
+    wreck.burnTimer = 60;
+    trafficCar(game, 'solcab', lineCoord(9) + 3.5, 60, 0, 6);
+    trafficCar(game, 'tessaro', lane, 40, SOUTH, 6, '#a8dadc');
+    populate(game, lineCoord(9) + 20, 110, 2, 24, 60, 130);
+    for (let i = 0; i < 10; i += 1) game.peds.spawnNear(lineCoord(9) + 30, 120, 6, 30);
+    game.camera.alignBehind(SOUTH, 0.12);
+    run(game, tools, 0.25, ['KeyW']);
+    // Dispatch boxes the Promenade in further down while GULL ONE leans in over the chase.
     game.gps.update(1.1);
-    game.police.roadblocks.buildAt(140, car.z + 55, 0);
-    game.police.helicopter.placeAt(car.x - 20, 16, car.z + 48, 0);
+    game.police.roadblocks.buildAt(lane + 3.5, car.z - 75, SOUTH);
+    game.police.helicopter.placeAt(car.x + 1.5, 13.5, car.z - 30, SOUTH);
     game.dialogue.clear();
-    game.dialogue.say([{ who: 'juno', text: 'Roadblock on Marisol Ave! Thread the gap and do NOT touch the spikes, Dani!', duration: 30 }]);
-    run(game, tools, 0.3, ['KeyW']);
-    units[0].ramming = true;
-    // A close chase camera that keeps Dani's car dominant while the police pack and route read clearly.
+    game.dialogue.say([{ who: 'juno', text: 'They boxed the Promenade, Dani! Shove that cruiser off and keep the case dry!', duration: 30 }]);
+    side.ramming = true;
+    run(game, tools, 0.35, ['KeyW']);
     const lead = game.player.vehicle ?? car;
-    game.camera.setPose(lead.x - 3.5, 3.9, lead.z - 11.5, lead.x + 1.2, 2, lead.z + 20, 57);
+    side.ramming = true;
+    // GULL ONE hangs over the Promenade ahead, its narrow searchlight ending in a pool on Dani's car.
+    game.police.helicopter.placeAt(lead.x + 3.8, 15, lead.z - 32, SOUTH);
+    game.police.helicopter.update(0);
+    // The nearest officer's last shot is still in the air when the frame is taken.
+    const shooter = game.police.officers?.cops?.find((c) => c.unit === ahead && c.human.alive);
+    if (shooter) {
+      const h = shooter.human;
+      const dx = lead.x - h.x, dz = lead.z - h.z, d = Math.hypot(dx, dz) || 1;
+      game.effects.muzzle(h.x + (dx / d) * 0.7, 1.35, h.z + (dz / d) * 0.7, dx / d, 0, dz / d, true);
+    }
+    // A low chase camera: Dani's car big in the frame, the cruisers within a few metres, the sea on the right.
+    game.camera.setPose(lead.x + 0.6, 6.6, lead.z + 15, lead.x + 4, 1.4, lead.z - 16, 60);
     clearLens(game);
   },
 

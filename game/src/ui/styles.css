@@ -107,7 +107,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d16; fon
 #hud-street { display: block; font: 600 13px var(--hud-cond); color: rgba(255,255,255,0.7); }
 #hud-crew { align-self: flex-start; font: 800 12px var(--hud-cond); letter-spacing: 1.2px; color: #fff; background: var(--crew); padding: 2px 9px; border-radius: 4px; }
 .stat-bar { display: flex; align-items: center; gap: 7px; }
-.stat-bar em { width: 20px; text-align: center; font: 900 17px var(--hud-font); font-style: normal; }
+.stat-bar em { width: 58px; flex: none; font: 800 13px var(--hud-cond); letter-spacing: 1px; font-style: normal; text-shadow: var(--stroke); }
+.stat-bar .meter { flex: 1; }
+.stat-bar b { width: 30px; flex: none; text-align: right; font: 900 16px var(--hud-cond); color: #fff; text-shadow: var(--stroke); }
+#hud-loot { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; margin: -2px 0 2px; }
+#hud-loot.hidden { display: none; }
+#hud-loot small { font: 800 15px var(--hud-cond); letter-spacing: 2px; color: #1a1208; background: var(--gold); padding: 1px 7px; border-radius: 4px; }
+#hud-loot b { font: 900 38px/1 var(--hud-font); color: var(--gold); text-shadow: var(--stroke), 0 0 16px rgba(255,200,60,0.35); }
 .stat-bar .meter { height: 12px; }
 .stat-bar.health em { color: #6ee36a; }
 .stat-bar.health i { background: linear-gradient(90deg, #2fae3a, #8ff07a); }
@@ -143,7 +149,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d16; fon
 #hud-gear { margin-left: auto; font: 900 26px var(--hud-font); color: #0b0d18; background: var(--accent); border-radius: 6px; padding: 0 9px; align-self: center; }
 
 /* Dialogue, bottom centre. */
-#hud-dialogue { --accent: #2fd3cb; position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); width: 470px; display: flex; align-items: center; gap: 12px; background: linear-gradient(90deg, rgba(10,12,28,0.94), rgba(10,12,28,0.8)); border: 1px solid rgba(255,255,255,0.14); border-bottom: 4px solid var(--accent); border-radius: 10px; padding: 9px 14px 9px 9px; box-shadow: 0 10px 28px rgba(0,0,0,0.5); }
+#hud-dialogue { --accent: #2fd3cb; position: absolute; bottom: 18px; left: calc(50% + 116px); transform: translateX(-50%); width: 470px; display: flex; align-items: center; gap: 12px; background: linear-gradient(90deg, rgba(10,12,28,0.94), rgba(10,12,28,0.8)); border: 1px solid rgba(255,255,255,0.14); border-bottom: 4px solid var(--accent); border-radius: 10px; padding: 9px 14px 9px 9px; box-shadow: 0 10px 28px rgba(0,0,0,0.5); }
 #hud-portrait { width: 86px; height: 86px; border-radius: 8px; flex: none; box-shadow: 0 0 0 2px var(--accent); }
 .dialogue-text { min-width: 0; }
 .dialogue-text .who { display: flex; align-items: baseline; gap: 8px; }
@@ -195,24 +201,17 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d16; fon
 #letterbox.on::before, #letterbox.on::after { height: 9vh; }
 #hud-fps { position: absolute; left: 8px; top: 4px; font: 12px monospace; opacity: 0.7; }
 
-/* Active pursuit: retain only information that helps the next driving/combat decision.
-   The same state is used in ordinary play and deterministic screenshot scenes. */
-#hud.pursuit #hud-cash,
-#hud.pursuit #hud-daypart,
-#hud.pursuit #hud-radio,
-#hud.pursuit #hud-district,
-#hud.pursuit #hud-crew,
-#hud.pursuit #hud-respect { display: none !important; }
+/* Active pursuit: the stars, the police panel and the survival bars grow; nothing the player
+   needs is hidden. The same state is used in ordinary play and deterministic screenshot scenes. */
+#hud.pursuit #hud-daypart { display: none !important; }
 #hud.pursuit #hud-topleft { width: 354px; gap: 6px; }
 #hud.pursuit #hud-mission { padding: 9px 13px 8px 12px; background: linear-gradient(160deg, rgba(14,16,34,0.92), rgba(8,9,22,0.82)); }
 #hud.pursuit #hud-objective { margin: 5px 0 7px; font-size: 19px; }
-#hud.pursuit #hud-mission-next { display: grid; gap: 1px; margin-top: 6px; font-size: 12px; line-height: 1.15; white-space: normal; }
+#hud.pursuit #hud-mission-next { display: block; margin-top: 6px; font-size: 14px; line-height: 1.15; white-space: normal; }
 #hud.pursuit #hud-mission-next span { display: block; overflow: visible; text-overflow: clip; }
 #hud.pursuit #hud-dispatch { padding: 6px 11px 5px 10px; }
 #hud.pursuit #hud-dispatch-rows { display: flex; margin: 5px 0 0; }
-#hud.pursuit #hud-dispatch-rows li { display: none; grid-template-columns: 30px 1fr 52px 88px; font-size: 15px; gap: 5px; }
-#hud.pursuit #hud-dispatch-rows li:first-child { display: grid; }
-#hud.pursuit #hud-dispatch-rows li.roadblock-alert { display: grid; }
+#hud.pursuit #hud-dispatch-rows li { display: grid; grid-template-columns: 30px 1fr 52px 88px; font-size: 15px; gap: 5px; }
 #hud.pursuit #hud-dispatch-rows li i svg { width: 27px; }
 #hud.pursuit #hud-dispatch-rows li em { font-size: 12px; }
 #hud.pursuit #hud-dispatch-more { display: none; }
@@ -221,14 +220,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0d16; fon
 #hud.pursuit #hud-stars { height: 48px; }
 #hud.pursuit #hud-stars span { font-size: 48px; line-height: 48px; }
 #hud.pursuit #hud-wanted-tag { font-size: 15px; padding: 4px 10px; margin-top: 2px; }
-#hud.pursuit #hud-weapons .wslot:not(.selected) { display: none; }
-#hud.pursuit #hud-weapons .wslot.selected { width: 86px; height: 60px; }
-#hud.pursuit #hud-weapons .wslot.selected canvas { width: 62px; height: 26px; top: 3px; }
-#hud.pursuit #hud-weapons .wslot.selected b { font-size: 14px; line-height: 15px; }
-#hud.pursuit #hud-weapons .wslot.selected small { font-size: 9px; line-height: 10px; }
 #hud.pursuit #hud-minimap-wrap { width: 230px; height: 230px; }
 #hud.pursuit #hud-minimap { width: 222px; height: 222px; }
-#hud.pursuit #hud-status { width: 180px; }
+#hud.pursuit #hud-status { width: 236px; }
 #hud.pursuit #hud-bottomright { width: 248px; }
 #hud.pursuit #hud-vehicle { padding: 7px 11px 6px 10px; }
 #hud.pursuit #hud-vehicle .condition { gap: 6px; margin: 3px 0 1px; }

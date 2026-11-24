@@ -28,6 +28,7 @@ const INTERFACE_HTML = `
   <div id="hud-topright">
     <div class="tr-row"><span id="hud-clock">18:00</span><span id="hud-daypart"></span></div>
     <div id="hud-cash">$0</div>
+    <div id="hud-loot" class="hidden"><small>LOOT</small><b id="hud-loot-amount">$0</b></div>
     <div id="hud-stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div>
     <div id="hud-wanted-tag" class="hidden"></div>
     <div id="hud-weapons"></div>
@@ -41,8 +42,8 @@ const INTERFACE_HTML = `
     <div id="hud-status">
       <div id="hud-district"><i id="hud-district-dot"></i><div><b id="hud-area"></b><span id="hud-street"></span></div></div>
       <div id="hud-crew" class="hidden"></div>
-      <div class="stat-bar health" id="hud-health-bar"><em>+</em><div class="meter"><i id="hud-health"></i></div></div>
-      <div class="stat-bar armor"><em>◆</em><div class="meter"><i id="hud-armor"></i></div></div>
+      <div class="stat-bar health" id="hud-health-bar"><em>HEALTH</em><div class="meter"><i id="hud-health"></i></div><b id="hud-health-num">100</b></div>
+      <div class="stat-bar armor"><em>ARMOR</em><div class="meter"><i id="hud-armor"></i></div><b id="hud-armor-num">0</b></div>
       <div id="hud-respect"><div class="respect-head"><b id="hud-respect-rank"></b><span id="hud-respect-title"></span></div><div class="meter gold"><i id="hud-respect-fill"></i></div><small id="hud-respect-xp"></small></div>
     </div>
   </div>

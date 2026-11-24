@@ -28,7 +28,7 @@ export function createHud(game, mapCanvas) {
     root: $('hud'), clock: $('hud-clock'), daypart: $('hud-daypart'), cash: $('hud-cash'), stars: $('hud-stars'), wantedTag: $('hud-wanted-tag'),
     health: $('hud-health'), healthBar: $('hud-health-bar'), armor: $('hud-armor'), prompt: $('hud-prompt'), crosshair: $('hud-crosshair'),
     big: $('hud-big'), bigTitle: $('hud-big-title'), bigSub: $('hud-big-sub'), titlecard: $('hud-titlecard'), titleName: $('hud-titlecard-name'),
-    titleTag: $('hud-titlecard-tag'), damage: $('hud-damage'), wasted: $('hud-wasted'), letterbox: $('letterbox'), fps: $('hud-fps'),
+    titleTag: $('hud-titlecard-tag'), loot: $('hud-loot'), lootAmount: $('hud-loot-amount'), healthNum: $('hud-health-num'), armorNum: $('hud-armor-num'), damage: $('hud-damage'), wasted: $('hud-wasted'), letterbox: $('letterbox'), fps: $('hud-fps'),
   };
   const minimap = createMinimap(game, $('hud-minimap'), mapCanvas);
   const toasts = createToasts(game);
@@ -115,11 +115,17 @@ export function createHud(game, mapCanvas) {
       } else el.cash.classList.remove('gain');
       setText(el.cash, `$${Math.max(0, state.displayedCash).toLocaleString('en-US')}`);
       updateWanted();
+      // The LOOT counter: the take a story job or a heist is carrying right now.
+      const loot = game.heists?.loot ?? game.missions.active?.data?.loot ?? 0;
+      show(el.loot, loot > 0);
+      if (loot > 0) setText(el.lootAmount, `$${Math.round(loot).toLocaleString('en-US')}`);
       // Health and armour.
       const hp = Math.max(0, h.health / h.maxHealth);
       el.health.style.width = `${hp * 100}%`;
       el.healthBar.classList.toggle('low', hp < 0.3);
       el.armor.style.width = `${Math.max(0, h.armor)}%`;
+      setText(el.healthNum, String(Math.max(0, Math.round(h.health))));
+      setText(el.armorNum, String(Math.max(0, Math.round(h.armor))));
       if (h.health < state.lastHealth - 0.5) state.damage = Math.min(1, state.damage + (state.lastHealth - h.health) / 25);
       state.lastHealth = h.health;
       state.damage = Math.max(hp < 0.25 && h.alive ? 0.35 + Math.sin(game.clock * 5) * 0.1 : 0, state.damage - dt * 1.5);

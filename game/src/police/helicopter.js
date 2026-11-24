@@ -53,12 +53,13 @@ export function buildHelicopterModel(glowTexture) {
   fade.width = 4; fade.height = 128;
   const fctx = fade.getContext('2d');
   const grad = fctx.createLinearGradient(0, 0, 0, 128);
-  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.6, 'rgba(170,170,170,1)'); grad.addColorStop(1, 'rgba(40,40,40,1)');
+  // A narrow shaft: bright at the lamp, thinning out before it reaches the bright pool on the ground.
+  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.35, 'rgba(150,150,150,1)'); grad.addColorStop(1, 'rgba(18,18,18,1)');
   fctx.fillStyle = grad; fctx.fillRect(0, 0, 4, 128);
-  const beamMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(fade), color: '#fff4dc', transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
-  const beam = new THREE.Mesh(new THREE.ConeGeometry(6, 1, 28, 1, true).translate(0, -0.5, 0), beamMat);
+  const beamMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(fade), color: '#ffe9b8', transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+  const beam = new THREE.Mesh(new THREE.ConeGeometry(2.4, 1, 28, 1, true).translate(0, -0.5, 0), beamMat);
   beam.frustumCulled = false;
-  const spot = new THREE.Mesh(new THREE.CircleGeometry(7, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: glowTexture, color: '#fff2d0', transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
+  const spot = new THREE.Mesh(new THREE.CircleGeometry(3.6, 32).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: glowTexture, color: '#fff2d0', transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }));
   spot.renderOrder = 2;
   return { group, hub, disc, tail, strobes, lamp, beam, beamMat, spot };
 }
@@ -127,9 +128,9 @@ export function createHelicopter(game) {
     model.beam.position.copy(nose);
     model.beam.scale.set(1, len, 1);
     model.beam.quaternion.setFromUnitVectors(up, dir);
-    model.beamMat.opacity = want ? 0.1 + night * 0.16 : 0;
+    model.beamMat.opacity = want ? 0.16 + night * 0.1 : 0;
     model.spot.position.set(state.spotX, 0.12, state.spotZ);
-    model.spot.material.opacity = want ? 0.35 + night * 0.5 : 0;
+    model.spot.material.opacity = want ? 0.6 + night * 0.4 : 0;
     model.lamp.material.opacity = want ? 1 : 0;
     state.onTarget = want && Math.hypot(p.x - state.x, p.z - state.z) < 70;
 

@@ -6,7 +6,7 @@
 
 Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is out, the bay still glows gold at sunset, and Gideon Pike, the man who sold Dani out, runs the waterfront. Auntie Coco has work, Tavo has wheels, Juno can open any safe, and Mara Velasco's Velvet Knives own the neon of Deco Row.
 
-![Gold Coast Getaway: a four-star sunset escape closes on a police roadblock](screenshots/1-active-chase.jpg)
+![Gold Coast Getaway: a five-star golden-hour escape down Ocean Promenade with the armored-truck take](screenshots/1-heist-getaway.jpg)
 
 | | | |
 | --- | --- | --- |
