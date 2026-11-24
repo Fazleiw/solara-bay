@@ -14,6 +14,7 @@ export function freshState() {
     respect: 0,
     personalCar: null,
     stats: { missionsPassed: 0, kills: 0, carsStolen: 0, wasted: 0, busted: 0, distance: 0, taxiFares: 0, tacoRuns: 0 },
+    heists: { marisol: { runs: 0, best: 0, medal: null }, career: { take: 0, bags: 0, jobs: 0 } },
   };
 }
 
@@ -36,6 +37,7 @@ export function createSession(game) {
       respect: game.state.respect,
       personalCar: game.state.personalCar,
       stats: game.state.stats,
+      heists: game.state.heists,
       weapons: Object.fromEntries(Object.entries(p.inventory.owned).filter(([id]) => id !== 'fists').map(([id, s]) => [id, s.mag + s.reserve])),
       health: p.human.health,
       armor: p.human.armor,
@@ -76,7 +78,7 @@ export function createSession(game) {
     const data = loadGame();
     if (!data) { session.newGame(); return; }
     resetWorldState();
-    game.state = { ...freshState(), cash: data.cash, storyProgress: data.storyProgress, choices: data.choices ?? {}, medallions: data.medallions ?? [], respect: data.respect ?? 0, personalCar: data.personalCar ?? null, stats: { ...freshState().stats, ...(data.stats ?? {}) } };
+    game.state = { ...freshState(), cash: data.cash, storyProgress: data.storyProgress, choices: data.choices ?? {}, medallions: data.medallions ?? [], respect: data.respect ?? 0, personalCar: data.personalCar ?? null, stats: { ...freshState().stats, ...(data.stats ?? {}) }, heists: data.heists ?? freshState().heists };
     const inv = createInventory();
     for (const [id, ammo] of Object.entries(data.weapons ?? {})) if (WEAPONS[id]) giveWeapon(inv, id, ammo);
     game.player.inventory = inv;

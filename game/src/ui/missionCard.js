@@ -26,8 +26,19 @@ export function createMissionCard(game) {
   function render() {
     const ctx = game.missions.active;
     const side = game.side?.active;
+    const heist = game.heists?.card();
+    if (!heist && state.wasHeist) state.timer = null;
+    state.wasHeist = !!heist;
     el.card.classList.remove('hidden');
-    if (ctx) {
+    if (heist) {
+      el.card.dataset.kind = 'heist';
+      setText(el.chapter, heist.title);
+      setHtml(el.objective, esc(heist.objective).replace(/\*(.+?)\*/g, '<em>$1</em>'));
+      segments(heist.stages, heist.stage);
+      setText(el.stageLabel, `PHASE ${heist.stage + 1}/${heist.stages}`);
+      setHtml(el.next, `<b>NEXT</b> ${esc(heist.next)}`);
+      state.timer = heist.timer;
+    } else if (ctx) {
       const def = ctx.def;
       const stages = def.stages ?? [];
       el.card.dataset.kind = 'story';

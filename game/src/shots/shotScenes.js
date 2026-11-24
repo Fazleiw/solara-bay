@@ -6,12 +6,15 @@
 //   beach   midday carjacking on Ocean Promenade by the pier and the Sol Wheel, a witness calls it in
 //   neon    Velvet Static: a night shootout with the Velvet Knives under Deco Row's neon
 //   payoff  Gold Coast Getaway: Tavo's bay opening under live four-star pressure
+//   vault   the Marisol Savings & Loan job at night: Dani and Juno run the bags to Tavo's car under fire
+//   board   the heist board: the bank job, two locked scores, the crew's cuts and the career
 import { STEP } from '../config.js';
 import { giveWeapon } from '../combat/weapons.js';
 import { freshState } from '../gameplay/session.js';
 import { NEON_PALMS } from '../missions/chapters.js';
 import { freshEscapeProgress } from '../missions/goldCoastEscape.js';
 import { LANDMARKS, lineCoord } from '../world/cityLayout.js';
+import { BANK } from '../heists/bankFront.js';
 
 const EAST = Math.PI / 2;
 
@@ -249,6 +252,69 @@ const SCENES = {
     game.camera.setPose(car.x - 11, 4.2, car.z - 15, car.x, 2.1, car.z + 8, 58);
     clearLens(game, 4);
   },
+};
+
+SCENES.vault = (game, tools) => {
+  prepare(game, 23.1, 6, { respect: 3400 });
+  const p = game.player;
+  const heists = game.heists;
+  game.audio.radio.setStation(3);
+  giveWeapon(p.inventory, 'pistol', 60);
+  giveWeapon(p.inventory, 'smg', 150);
+  p.inventory.current = 'smg';
+  p.human.armor = 38;
+  p.human.health = 71;
+  heists.ensureWorld();
+  p.teleport(BANK.meet.x, BANK.meet.z, 0);
+  heists.start();
+  const job = heists.active;
+  // 1 Get in: Dani crosses Solstice St to the vault door with Juno.
+  p.teleport(BANK.door.x, BANK.door.z + 0.4, Math.PI);
+  job.juno.x = BANK.door.x + 1.2; job.juno.z = BANK.door.z + 1;
+  job.h.alarm = 58;
+  run(game, tools, 0.1);
+  // 2 The drill, fast-forwarded to its last turns and finished in the green.
+  job.h.drill = 94; job.h.drillTime = 13; job.h.greenTime = 12.4;
+  run(game, tools, 1.2);
+  // 3 The bags: Dani walks over each one.
+  for (const bag of [...job.ground]) { p.teleport(bag.x, bag.z, 0); run(game, tools, 0.05); }
+  // 4 The alarm: Bay Police converge on Solstice St while the crew runs for Tavo's car.
+  populate(game, BANK.x, BANK.facadeZ + 10, 3, 8, 50, 110);
+  const west = game.police.spawnUnitAt(BANK.x - 16, lineCoord(7) + 3.5, EAST + 0.35);
+  west.car.vx = 9;
+  const east = game.police.spawnUnitAt(BANK.x + 24, lineCoord(7) - 1, -EAST - 0.5);
+  east.car.vx = -8;
+  game.police.deployOfficers(east);
+  p.teleport(BANK.x + 4.5, lineCoord(7) - 5.6, EAST + 0.6);
+  job.juno.x = BANK.x + 2.2; job.juno.z = lineCoord(7) - 7.2;
+  job.juno.heading = EAST + 0.5;
+  run(game, tools, 0.45, ['KeyW', 'ShiftLeft'], { aim: false });
+  game.dialogue.clear();
+  game.dialogue.say([{ who: 'tavo', text: "Car's at the curb, engine running. Bags in the back, go go go!", duration: 30 }]);
+  const shooter = game.police.officers.cops.find((c) => c.unit === east && c.human.alive);
+  if (shooter) {
+    const h = shooter.human;
+    const dx = p.x - h.x, dz = p.z - h.z, d = Math.hypot(dx, dz) || 1;
+    game.effects.muzzle(h.x + (dx / d) * 0.7, 1.35, h.z + (dz / d) * 0.7, dx / d, 0, dz / d, true);
+  }
+  // From the far curb: Dani and Juno with the bags in front, the bank's gold sign and open vault behind.
+  game.camera.setPose(p.x + 5.5, 2.3, p.z + 9.5, p.x - 3.5, 3.2, BANK.facadeZ, 58);
+  clearLens(game, 3);
+};
+
+SCENES.board = (game, tools) => {
+  prepare(game, 22.4, 6, {
+    respect: 3400,
+    stats: { ...freshState().stats, missionsPassed: 6, carsStolen: 41, kills: 63 },
+    heists: { marisol: { runs: 2, best: 64600, medal: 'silver' }, career: { take: 117350, bags: 7, jobs: 2 } },
+  });
+  const p = game.player;
+  game.heists.ensureWorld();
+  p.teleport(BANK.meet.x, BANK.meet.z, Math.PI);
+  populate(game, BANK.x, BANK.facadeZ + 10, 3, 10, 40, 110);
+  run(game, tools, 0.3);
+  game.heists.board.open();
+  game.camera.setPose(BANK.meet.x + 6, 3.2, BANK.meet.z + 10, BANK.x, 5, BANK.facadeZ, 60);
 };
 
 export function stageShot(name, game, tools) {

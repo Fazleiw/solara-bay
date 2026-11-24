@@ -13,6 +13,9 @@ import { createVehicleCard } from './vehicleCard.js';
 import { createRespectBar } from './respectBar.js';
 import { createDistrictPill } from './districtPill.js';
 import { createToasts } from './toasts.js';
+import { createHeistHud } from './heistHud.js';
+import { createHeistBoard } from './heistBoard.js';
+import { createPayoutScreen } from './payoutScreen.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -39,6 +42,12 @@ export function createHud(game, mapCanvas) {
   const vehicle = createVehicleCard(game);
   const respect = createRespectBar(game);
   const district = createDistrictPill(game, toasts.toast);
+  const heist = createHeistHud(game, el.root);
+  const payoutScreen = createPayoutScreen(game, document.getElementById('ui'));
+  if (game.heists) {
+    game.heists.board = createHeistBoard(game, document.getElementById('ui'));
+    game.heists.payoutScreen = payoutScreen;
+  }
   const starEls = [...el.stars.children];
   const state = { displayedCash: 0, promptText: null, promptTimer: 0, bigTimer: 0, titleTimer: 0, damage: 0, lastHealth: 100, frames: 0, fpsTime: 0 };
 
@@ -139,6 +148,8 @@ export function createHud(game, mapCanvas) {
       vehicle.render();
       respect.render();
       district.render();
+      heist.render();
+      payoutScreen.update(dt);
       toasts.update(dt);
       minimap.draw();
       // Timed elements.

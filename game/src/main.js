@@ -48,6 +48,7 @@ import { createInput } from './core/input.js';
 import { createEventBus } from './core/events.js';
 import { loadGame, loadSettings } from './core/save.js';
 import { mountInterface } from './ui/layout.js';
+import { createHeists } from './heists/bankJob.js';
 import { stageShot } from './shots/shotScenes.js';
 import { runSelfTest } from './shots/selfTest.js';
 
@@ -124,6 +125,7 @@ game.pickups = createPickups(game);
 game.collectibles = createCollectibles(game);
 game.gps = createGps(game);
 game.missions = createMissionSystem(game);
+game.heists = createHeists(game);
 game.side = createSideJobs(game);
 game.gunStore = createGunStore(game);
 game.garage = createGarage(game);
@@ -243,6 +245,7 @@ function simulate(dt) {
   game.pickups.update(dt);
   game.collectibles.update(dt);
   game.missions.update(dt);
+  game.heists.update(dt);
 }
 
 /** Once-per-frame interactions that read key presses: shops, the save point and side jobs. */
