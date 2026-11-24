@@ -28,5 +28,7 @@ export function createToasts(game) {
     }
   }
 
-  return { toast, update };
+  function clear() { for (const t of live.splice(0)) t.node.remove(); }
+
+  return { toast, update, clear };
 }

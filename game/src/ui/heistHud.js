@@ -1,4 +1,4 @@
-// The heist strip beside the mission card while a job runs: the phase track, Juno's drill
+// The heist strip under the mission card and police panel while a job runs: the phase track, Juno's drill
 // meter (progress plus a heat bar banded green / amber / red, JAMMED in the red) and the crew's
 // Z / X / C ability slots with portraits-in-miniature and their cooldowns.
 import { CREW, DRILL, PHASES, PHASE_LABELS, heatBand } from '../heists/heistRules.js';

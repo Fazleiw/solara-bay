@@ -1,8 +1,8 @@
 /* Heists: the in-game heist strip (phases, vault drill, crew abilities), the payout screen and
    the heist board / career screen. */
 
-/* ---------- Heist strip beside the mission card ---------- */
-#hud-heist { position: absolute; left: 386px; top: 16px; width: 330px; display: flex; flex-direction: column; gap: 6px; }
+/* ---------- Heist strip under the mission card and police panel ---------- */
+#hud-heist { width: 100%; display: flex; flex-direction: column; gap: 6px; }
 #hud-heist.hidden { display: none; }
 .heist-phases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; }
 .heist-phases span { font: 800 10.5px var(--hud-cond); letter-spacing: 0.6px; padding: 3px 6px; border-radius: 4px; background: rgba(10,12,28,0.72); color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden; }

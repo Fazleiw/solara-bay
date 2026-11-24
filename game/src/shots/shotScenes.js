@@ -280,15 +280,17 @@ SCENES.vault = (game, tools) => {
   for (const bag of [...job.ground]) { p.teleport(bag.x, bag.z, 0); run(game, tools, 0.05); }
   // 4 The alarm: Bay Police converge on Solstice St while the crew runs for Tavo's car.
   populate(game, BANK.x, BANK.facadeZ + 10, 3, 8, 50, 110);
-  const west = game.police.spawnUnitAt(BANK.x - 16, lineCoord(7) + 3.5, EAST + 0.35);
-  west.car.vx = 9;
-  const east = game.police.spawnUnitAt(BANK.x + 24, lineCoord(7) - 1, -EAST - 0.5);
-  east.car.vx = -8;
+  const west = game.police.spawnUnitAt(BANK.x - 4, lineCoord(7) + 2.5, EAST + 0.6);
+  west.car.vx = 5;
+  const east = game.police.spawnUnitAt(BANK.x + 13, lineCoord(7) + 1.5, -EAST - 0.7);
+  east.car.vx = -3;
   game.police.deployOfficers(east);
   p.teleport(BANK.x + 4.5, lineCoord(7) - 5.6, EAST + 0.6);
   job.juno.x = BANK.x + 2.2; job.juno.z = lineCoord(7) - 7.2;
   job.juno.heading = EAST + 0.5;
+  game.camera.alignBehind(EAST + 0.25, 0.1);
   run(game, tools, 0.45, ['KeyW', 'ShiftLeft'], { aim: false });
+  game.hud.clearToasts();
   game.dialogue.clear();
   game.dialogue.say([{ who: 'tavo', text: "Car's at the curb, engine running. Bags in the back, go go go!", duration: 30 }]);
   const shooter = game.police.officers.cops.find((c) => c.unit === east && c.human.alive);
@@ -297,8 +299,8 @@ SCENES.vault = (game, tools) => {
     const dx = p.x - h.x, dz = p.z - h.z, d = Math.hypot(dx, dz) || 1;
     game.effects.muzzle(h.x + (dx / d) * 0.7, 1.35, h.z + (dz / d) * 0.7, dx / d, 0, dz / d, true);
   }
-  // From the far curb: Dani and Juno with the bags in front, the bank's gold sign and open vault behind.
-  game.camera.setPose(p.x + 5.5, 2.3, p.z + 9.5, p.x - 3.5, 3.2, BANK.facadeZ, 58);
+  // From the middle of Solstice St: Dani and Juno run side-on with the bags, the open vault and gold sign behind, a cruiser either side.
+  game.camera.setPose(p.x + 1.5, 3.1, p.z + 13.5, p.x + 1, 3.2, BANK.facadeZ, 62);
   clearLens(game, 3);
 };
 

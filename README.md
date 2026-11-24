@@ -10,7 +10,14 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 
 | | | |
 | --- | --- | --- |
-| ![Close on-foot combat under Deco Row's rain-slick neon](screenshots/2-neon-action.jpg) | ![A witness reports the stolen car beside the beach and Sol Wheel](screenshots/3-beach-witness.jpg) | ![Gold Coast Getaway holds inside Tavo's bay under a live four-star response](screenshots/4-gold-coast-payoff.jpg) |
+| ![The Marisol Savings & Loan job: Dani and Juno run the loot bags past the open vault under fire](screenshots/2-bank-vault-escape.jpg) | ![Juno's heist board: the bank job, two locked scores, the crew's cuts and the career](screenshots/3-heist-board.jpg) | ![Close on-foot combat under Deco Row's rain-slick neon](screenshots/4-neon-action.jpg) |
+
+## Heists
+
+- **Marisol Savings & Loan** (Deco Row, after dark). Walk to the gold **$** marker across Solstice St and press E to open Juno's heist board, then E again to go. Six phases: **get in** before the silent alarm's two-minute clock runs out; **drill the vault** (hold E to lean on Juno's drill for speed, but keep the heat meter in the green: in the red the bit jams until it cools); **grab the loot**, four bags worth $70,750 that ride on Dani's and Juno's backs while the HUD's LOOT counter climbs; **the alarm** brings the Bay Police at three stars, four if you took most of the vault; **the getaway** to Tavo's car at the curb and on to his garage; and the **payout** screen with each crew member's cut (Juno 20%, Tavo 15%, Coco 10%, Dani 55%) and a gold, silver or bronze medal (gold: every bag, no jams, the alarm beaten).
+- **Crew abilities** on **Z / X / C**, each with a cooldown on the heist strip: Juno cools the drill (or jams the alarm line for 12 s), Tavo's decoy pulls one star off, Coco patches Dani up.
+- **The heist board** lists the bank job and two scores still locked (the Lumen & Co. Jewel Grab and The Pike Pier Score), the approach, the crew and their cuts, the take against your cut, completion % and career stats. Heist records save with the game.
+- **Gold Coast Getaway**, the armored-truck job of chapter 6, carries its $48,250 take on the same LOOT counter.
 
 ## What's in it
 
@@ -43,7 +50,8 @@ Dani Reyes took a six-year fall for the Saltjaw Crew and kept quiet. Now Dani is
 | E | Interact: shops, garage, save, taco run · police siren |
 | T | Taxi fares in a Solcab |
 | V | Switch Gold Coast Getaway route |
-| C | Look behind |
+| Z / X / C | Crew abilities during a heist (C also looks behind) |
+| E (hold) | Lean on the vault drill |
 | M | City map |
 | Esc / P | Pause |
 
@@ -59,9 +67,9 @@ Then open http://localhost:8080 in desktop Chrome. Any static file server pointe
 
 Developer extras:
 - The four screenshots are unedited 1280 × 800 playable Chrome captures of the deterministic scenes listed in `shots.json`.
-- `?shot=cover|beach|neon|payoff&seed=1` stages four posed scenes from the game code, kept as a development aid.
+- `?shot=cover|vault|board|neon|beach|payoff&seed=1` stages posed scenes from the game code; `node tools/capture.mjs cover vault board` captures them with headless Chrome while `node serve.ts` runs.
 - `?selftest=1` plays through every system in fast-forward and reports each step, both Gold Coast drops included.
-- `node --test tests/*.test.mjs` checks the chase camera's framing (car placement, field of view, look-ahead, recentre rules).
+- `node --test tests/*.test.mjs` checks the chase camera's framing, dispatch roadblocks, the Gold Coast routes and the heist rules (alarm, drill heat and jams, crew cooldowns, stars, medals, cuts).
 
 To hand the entry in, run `mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts`.
 
@@ -79,14 +87,16 @@ game/src/ai/               traffic, shared gunfight brain, route driver
 game/src/police/           wanted level, police force, pursuit driving, officers, helicopter, roadblocks, dispatch, witnesses
 game/src/gangs/            rival crews, gang members, territory
 game/src/missions/         cast, mission framework, the eight chapters, side jobs, collectibles
+game/src/heists/           heist rules, the Marisol bank job, the bank front, loot bags
 game/src/progression/      respect ranks
 game/src/shops/            gun store, garage upgrades, safehouse
 game/src/gameplay/         session (save, wasted/busted), pickups, GPS, markers
-game/src/ui/               HUD and its cards, minimap, map, dialogue, portraits, garage menu, menus, styles
+game/src/ui/               HUD and its cards, heist strip, heist board, payout screen, minimap, map, dialogue, portraits, garage menu, menus, styles
 game/src/audio/            audio engine, synth voices, sound effects, procedural radio
 game/src/camera/           third-person follow camera and the chase framing math
 game/src/shots/            posed scenes and the self-test
-tests/                     chase-camera framing test (node --test)
+tests/                     node --test: chase framing, roadblocks, Gold Coast routes, heist rules
+tools/capture.mjs          screenshot capture with headless Chrome (a maker's tool, not part of the game)
 ```
 
 Everything in the game is original. The only third-party code is three.js (MIT), vendored as `game/vendor/three.module.min.js`.

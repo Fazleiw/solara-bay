@@ -42,7 +42,7 @@ export function createHud(game, mapCanvas) {
   const vehicle = createVehicleCard(game);
   const respect = createRespectBar(game);
   const district = createDistrictPill(game, toasts.toast);
-  const heist = createHeistHud(game, el.root);
+  const heist = createHeistHud(game, $('hud-topleft'));
   const payoutScreen = createPayoutScreen(game, document.getElementById('ui'));
   if (game.heists) {
     game.heists.board = createHeistBoard(game, document.getElementById('ui'));
@@ -78,6 +78,7 @@ export function createHud(game, mapCanvas) {
   const hud = {
     minimap,
     toast: toasts.toast,
+    clearToasts: toasts.clear,
     setVisible(v) { show(el.root, v); },
     setObjective(text) { mission.setObjective(text); },
     setTimer(seconds) { mission.setTimer(seconds); },
